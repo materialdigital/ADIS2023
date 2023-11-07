@@ -2,7 +2,7 @@
 
 ## Common language and definitionns
 
-- `parser`: An inpur parser is a **function** that takes **serialized** or **serializable** data, as well as the destination path as arguments, and returns software-specific input files (if file-based) or software-specific input format (if python-based); output parser by analogy
+- `parser`: An inpur parser is a **function** that takes **serialized** or **serializable** data, as well as the destination path as arguments, and creates software-specific input files (if file-based) or returns software-specific input format (if python-based); output parser by analogy
   - `serialized data`: JSON, XML, yml etc.
   - `serializable data`: python dictionary (entries must be also serializable), python list, numbers etc.
 
