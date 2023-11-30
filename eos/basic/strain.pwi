@@ -1,0 +1,39 @@
+&CONTROL
+   calculation      = 'scf'
+   tstress          = .true.
+   tprnfor          = .true.
+/
+&SYSTEM
+   ecutwfc          = 29.49
+   smearing         = 'methfessel-paxton'
+   ntyp             = 1
+   nat              = 4
+   ibrav            = 0
+/
+&ELECTRONS
+   electron_maxstep = 100
+   conv_thr         = 1e-06
+   diagonalization  = 'david'
+/
+&IONS
+/
+&CELL
+/
+
+ATOMIC_SPECIES
+Al 26.9815385 Al.pbe-n-kjpaw_psl.1.0.0.UPF
+
+K_POINTS automatic
+3 3 3  0 0 0
+
+CELL_PARAMETERS angstrom
+4.00678094611336 0.00000000000000 0.00000000000000
+0.00000000000000 4.00678094611336 0.00000000000000
+0.00000000000000 0.00000000000000 4.00678094611336
+
+ATOMIC_POSITIONS angstrom
+Al 0.0000000000 0.0000000000 0.0000000000 
+Al 0.0000000000 2.0033904731 2.0033904731 
+Al 2.0033904731 0.0000000000 2.0033904731 
+Al 2.0033904731 2.0033904731 0.0000000000 
+
