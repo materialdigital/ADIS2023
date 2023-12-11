@@ -2,10 +2,35 @@
 
 ## Common language and definitionns
 
-- `parser`: An inpur parser is a **function** that takes **serialized** or **serializable** data, as well as the destination path as arguments, and creates software-specific input files (if file-based) or returns software-specific input format (if python-based); output parser by analogy
+### Parsers
+
+Wikipedia definition: https://en.wikipedia.org/wiki/Parsing#Parser
+
+A parser is a tool that takes input data and converts the contents into **serialized** or **serializable** data using an established format or schema.
+Immediately, we can consider two types of input data:
+
+* Text: the `stdout` of VASP, an XML file, ...
+* Software/language-specific data structures: a float, a Python `dict`, FORTRAN array, ...
+
+One can develop parsers for both the inputs and outputs of a software package or code.
+Still, some distinctions between the two can be made:
+
+#### Output parser
+
+* Typically does not have to be complete. The `stdout` of a code often will contain information that does not require parsing.
+  Moreover, we might not be interested in _all_ of the output provided (e.g. the difference in integrated charge density for each SCF step.)
+* Typically shouldn't be able to _generate_ the data that we want to parse.
+
+#### Input parser
+
+* Typically _does_ have to be complete, or _as complete_ as the parser of the software we are running.
+  If we want to understand how a certain calculation was run, we need to know all of the inputs.
+  Exceptions here are comments that are not processed by the software.
+* Typically _should_ be able to generate the data that we want to parse.
+  That is, if we consider this to be part of the functions of a parser.
+
   - `serialized data`: JSON, XML, yml etc.
   - `serializable data`: python dictionary (entries must be also serializable), python list, numbers etc.
-
 
 ## Software-specific semantics
 ### AiiDA
