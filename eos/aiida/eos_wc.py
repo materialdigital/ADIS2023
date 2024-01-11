@@ -61,7 +61,6 @@ class EquationOfState(engine.WorkChain):
 
         self.ctx.labels = list(calcjob_dict.keys())
 
-        # self.to_context(**calcjob_dict)
         return calcjob_dict
 
     def results(self):
