@@ -1,0 +1,17 @@
+[build-system]
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "adis-tools"
+version = "0.1.0"
+description = "Tools for the ADIS workflow project."
+dependencies = [
+    "qe_tools~=2.0",
+    "ase",
+    "numpy",
+    "xmlschema~=2.0"
+]
+
+[tool.flit.module]
+name = "adis_tools"
