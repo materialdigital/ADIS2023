@@ -1,0 +1,20 @@
+[build-system]
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "aiida-qe-basic"
+version = "0.1.0"
+description = "AiiDA basic QE plugin"
+dependencies = [
+    "aiida-core>=2.0,<3",
+]
+
+[project.entry-points."aiida.calculations"]
+"qe.pw" = "aiida_qe_basic.pw:PwCalculation"
+
+[project.entry-points."aiida.parsers"]
+"qe.pw" = "aiida_qe_basic.pw:PwParser"
+
+[tool.flit.module]
+name = "aiida_qe_basic"
