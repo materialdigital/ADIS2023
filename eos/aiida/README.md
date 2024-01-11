@@ -11,10 +11,11 @@ mamba env create -f environment.yml
 ```
 
 This will install `aiida-core`, a binary for Quantum ESPRESSO, and some other tools like `ase` and `jupyterlab` into the `adis-aiida` environment.
-Once complete, activate the environment:
+Once complete, activate the environment and start the rabbitmq service:
 
 ```
-conda activate adis-aiida
+mamba activate adis-aiida
+rabbitmq-server -detached
 ```
 
 I've written a basic parser for QE and added it to the `adis-tools` package:
