@@ -21,7 +21,7 @@ class PwCalculation(engine.CalcJob):
         spec.input('pseudopotentials', valid_type=orm.Dict)
 
         spec.output('structure', valid_type=orm.StructureData)
-        spec.output('energy', valid_type=orm.Float)
+        spec.output('properties', valid_type=orm.Dict)
 
     def prepare_for_submission(self, folder):
         """Create the input files from the input nodes passed to this instance of the `CalcJob`.
@@ -61,4 +61,7 @@ class PwParser(Parser):
             xml_outputs = parse_pw(handle)
 
         self.out('structure', orm.StructureData(ase=xml_outputs['ase_structure']))
-        self.out('energy', orm.Float(xml_outputs['energy']))
+        self.out('properties', orm.Dict({
+            'energy': xml_outputs['energy'],
+            'volume': xml_outputs['ase_structure'].get_volume(),
+        }))
