@@ -1,0 +1,2 @@
+# Conclusion
+The same workflow was implemented in four different simulation frameworks. On the one hand this simplifies the selection of a simulation framework for users who look for a simulation framework for their own code. On the other hand it also highlights how to develop transferable simulation protocols to improve the portability of a given simulation protocol from one framework to the next. 
