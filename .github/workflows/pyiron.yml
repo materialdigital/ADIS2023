@@ -22,5 +22,5 @@ jobs:
     - name: Tests
       shell: bash -l {0}
       run: |
-        conda install -c conda-forge papermill
+        conda install -c conda-forge jupyter papermill
         papermill pyiron_base.ipynb pyiron_base-out.ipynb -k "python3"

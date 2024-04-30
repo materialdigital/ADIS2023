@@ -22,5 +22,5 @@ jobs:
     - name: Tests
       shell: bash -l {0}
       run: |
-        conda install -c conda-forge papermill
+        conda install -c conda-forge jupyter papermill
         papermill jobflow.ipynb jobflow-out.ipynb -k "python3"
