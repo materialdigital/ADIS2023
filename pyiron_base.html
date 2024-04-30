@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Functions &#8212; ADIS2023</title>
+    <title>pyiron &#8212; ADIS2023</title>
   
   
   
@@ -60,7 +60,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'pyiron_base';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Functions" href="jobflow.html" />
+    <link rel="prev" title="jobflow" href="jobflow.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -178,14 +178,9 @@
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="challenges.html">Challenges for workflow frameworks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="aiida.html">Setup for running Quantum ESPRESSO</a></li>
-
-<li class="toctree-l1"><a class="reference internal" href="jobflow.html">Functions</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Functions</a></li>
-
-
-
-
+<li class="toctree-l1"><a class="reference internal" href="aiida.html">Aiida</a></li>
+<li class="toctree-l1"><a class="reference internal" href="jobflow.html">jobflow</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">pyiron</a></li>
 </ul>
 
     </div>
@@ -355,7 +350,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Functions</h1>
+    <h1>pyiron</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -365,13 +360,12 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Functions</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#setup">Setup</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#workflow">Workflow</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#result">Result</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#summary">Summary</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation-setup">Installation / Setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implementation-of-a-new-simulation-code">Implementation of a new simulation code</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submission-to-an-hpc-check-pointing-error-handling">Submission to an HPC / Check pointing / Error handling</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-storage-data-sharing">Data Storage / Data Sharing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#publication-of-the-workflow">Publication of the workflow</a></li>
 </ul>
-
             </nav>
         </div>
     </div>
@@ -382,61 +376,23 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <div class="cell docutils container">
+  <section class="tex2jax_ignore mathjax_ignore" id="pyiron">
+<h1>pyiron<a class="headerlink" href="#pyiron" title="Link to this heading">#</a></h1>
+<p>The integrated development environment (IDE) for computational materials science <code class="docutils literal notranslate"><span class="pre">pyiron</span></code> accelerates the rapid prototyping and up-scaling of simulation protocols. Internally, it consists of two primary components the <code class="docutils literal notranslate"><span class="pre">pyiron_atomistics</span></code> package, which provides the interfaces for atomistic simulations codes and atomistic simulation workflows and the <code class="docutils literal notranslate"><span class="pre">pyiron_base</span></code> package, which defines the job management and data storage interface. The latter is independent of the atomistic scale and addresses the general challenge of coupling simulation codes in reproducible workflows. Simulation codes can be integrated in the <code class="docutils literal notranslate"><span class="pre">pyiron_base</span></code> package by either using existing python bindings or alternatively by writing the input files, executing the simulation code and parsing the output files. The following explanations focus on the <code class="docutils literal notranslate"><span class="pre">pyiron_base</span></code> package as a workflow manager, which constructs simulation workflows by combining <code class="docutils literal notranslate"><span class="pre">job</span></code> objects like building blocks.</p>
+<section id="installation-setup">
+<h2>Installation / Setup<a class="headerlink" href="#installation-setup" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">pyiron_base</span></code> workflow manager can be installed via the python package index or the conda package manager. While no additional configuration is required to use <code class="docutils literal notranslate"><span class="pre">pyiron_base</span></code> on a workstation, the connection to an high performance computing (HPC) cluster requires some additional configuration. The <code class="docutils literal notranslate"><span class="pre">.pyiron</span></code> configuration file in the users home directory is used to specify the resource directory, which contains the configuration of the queuing system.</p>
+</section>
+<section id="implementation-of-a-new-simulation-code">
+<h2>Implementation of a new simulation code<a class="headerlink" href="#implementation-of-a-new-simulation-code" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">pyiron_base</span></code> workflow manager provides two interfaces to implement new simulation codes or simulation workflows. For simulation codes which already provide a python interface the <code class="docutils literal notranslate"><span class="pre">wrap_python_function()</span></code> function is used to convert any python function into a pyiron job object. In analogy external executables can be wrapped using the <code class="docutils literal notranslate"><span class="pre">wrap_executable()</span></code>. Based on these two functions any executable can be wrapped as <code class="docutils literal notranslate"><span class="pre">Job</span></code> object. By naming the <code class="docutils literal notranslate"><span class="pre">Job</span></code> object the user can easily reload the same calculation at any time. Furthermore, <code class="docutils literal notranslate"><span class="pre">pyiron_base</span></code> internally uses the name to generate a directory for each <code class="docutils literal notranslate"><span class="pre">Job</span></code> object to simplify locating the input and output of a given calculation for debugging:</p>
+<div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ase.build</span> <span class="kn">import</span> <span class="n">bulk</span>
 <span class="kn">from</span> <span class="nn">ase.io</span> <span class="kn">import</span> <span class="n">write</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">adis_tools.parsers</span> <span class="kn">import</span> <span class="n">parse_pw</span>
-</pre></div>
-</div>
-</div>
-</div>
-<section class="tex2jax_ignore mathjax_ignore" id="functions">
-<h1>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h1>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">generate_structures</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">strain_lst</span><span class="p">):</span> 
-    <span class="n">structure_lst</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">strain</span> <span class="ow">in</span> <span class="n">strain_lst</span><span class="p">:</span>
-        <span class="n">structure_strain</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="n">structure_strain</span><span class="o">.</span><span class="n">set_cell</span><span class="p">(</span>
-            <span class="n">structure_strain</span><span class="o">.</span><span class="n">cell</span> <span class="o">*</span> <span class="n">strain</span><span class="o">**</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">),</span> 
-            <span class="n">scale_atoms</span><span class="o">=</span><span class="kc">True</span>
-        <span class="p">)</span>
-        <span class="n">structure_lst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">structure_strain</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">structure_lst</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">plot_energy_volume_curve</span><span class="p">(</span><span class="n">volume_lst</span><span class="p">,</span> <span class="n">energy_lst</span><span class="p">):</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">volume_lst</span><span class="p">,</span> <span class="n">energy_lst</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Volume&quot;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Energy&quot;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;evcurve.png&quot;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">adis_tools.parsers</span> <span class="kn">import</span> <span class="n">parse_pw</span>
 </pre></div>
 </div>
 </div>
@@ -473,6 +429,23 @@ document.write(`
         <span class="s2">&quot;energy&quot;</span><span class="p">:</span> <span class="n">output</span><span class="p">[</span><span class="s2">&quot;energy&quot;</span><span class="p">],</span>
         <span class="s2">&quot;volume&quot;</span><span class="p">:</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;ase_structure&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get_volume</span><span class="p">(),</span>
     <span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Finally, multiple simulation can be combined in a simulation protocol. In this case the optimization of an Aluminium lattice structure, the calculation of an energy volume curve and the plotting of the resulting curve.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">generate_structures</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">strain_lst</span><span class="p">):</span> 
+    <span class="n">structure_lst</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">strain</span> <span class="ow">in</span> <span class="n">strain_lst</span><span class="p">:</span>
+        <span class="n">structure_strain</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">structure_strain</span><span class="o">.</span><span class="n">set_cell</span><span class="p">(</span>
+            <span class="n">structure_strain</span><span class="o">.</span><span class="n">cell</span> <span class="o">*</span> <span class="n">strain</span><span class="o">**</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">),</span> 
+            <span class="n">scale_atoms</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="n">structure_lst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">structure_strain</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">structure_lst</span>
 </pre></div>
 </div>
 </div>
@@ -527,12 +500,12 @@ document.write(`
 </div>
 </div>
 </div>
-</section>
-<section class="tex2jax_ignore mathjax_ignore" id="setup">
-<h1>Setup<a class="headerlink" href="#setup" title="Link to this heading">#</a></h1>
+<p>As the quantum espresso calculations are the computationally expensive steps they are combined in a python function to be submitted to dedicated computing resources. In contrast the creation of the atomistic structure and the plotting of the energy volume curve are executed in the users process.</p>
+<p>The remaining simulation protocol, can be summarized in a few lines. The required modules are imported, a <code class="docutils literal notranslate"><span class="pre">Project</span></code> object is created which represents a folder on the filesystem, the <code class="docutils literal notranslate"><span class="pre">wrap_python_function()</span></code> is used to convert the computationally expensive steps of the workflow into a single <code class="docutils literal notranslate"><span class="pre">Job</span></code> object and the resulting energy volume curve is plotted:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pyiron_base</span> <span class="kn">import</span> <span class="n">Project</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ase.build</span> <span class="kn">import</span> <span class="n">bulk</span>
+<span class="kn">from</span> <span class="nn">pyiron_base</span> <span class="kn">import</span> <span class="n">Project</span>
 </pre></div>
 </div>
 </div>
@@ -540,19 +513,7 @@ document.write(`
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pr</span> <span class="o">=</span> <span class="n">Project</span><span class="p">(</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
-<span class="n">pr</span><span class="o">.</span><span class="n">remove_jobs</span><span class="p">(</span><span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">silently</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "ad61406143494ae5a2d4a01b0cb3750d"}</script></div>
-</div>
-</section>
-<section class="tex2jax_ignore mathjax_ignore" id="workflow">
-<h1>Workflow<a class="headerlink" href="#workflow" title="Link to this heading">#</a></h1>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">job_workflow</span> <span class="o">=</span> <span class="n">pr</span><span class="o">.</span><span class="n">wrap_python_function</span><span class="p">(</span><span class="n">workflow</span><span class="p">)</span>
+<span class="n">job_workflow</span> <span class="o">=</span> <span class="n">pr</span><span class="o">.</span><span class="n">wrap_python_function</span><span class="p">(</span><span class="n">workflow</span><span class="p">)</span>
 <span class="n">job_workflow</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">project</span> <span class="o">=</span> <span class="n">pr</span>
 <span class="n">job_workflow</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">structure</span> <span class="o">=</span> <span class="n">bulk</span><span class="p">(</span><span class="s1">&#39;Al&#39;</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mf">4.05</span><span class="p">,</span> <span class="n">cubic</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">job_workflow</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">pseudopotentials</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Al&quot;</span><span class="p">:</span> <span class="s2">&quot;Al.pbe-n-kjpaw_psl.1.0.0.UPF&quot;</span><span class="p">}</span>
@@ -561,9 +522,9 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>The job workflowdbcdde11bde789bfe23b268a60c426c2 was saved and received the ID: 1
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>The job workflow895ba469e3d888839622dab8177e3746 was saved and received the ID: 1
 The job job_qe_minimize was saved and received the ID: 2
-The job generate_structuresffd5c51457c48a1cff1923a2d98eb48c was saved and received the ID: 3
+The job generate_structures81144f1592dde5715ec257eb7f425177 was saved and received the ID: 3
 The job job_strain_0 was saved and received the ID: 4
 The job job_strain_1 was saved and received the ID: 5
 The job job_strain_2 was saved and received the ID: 6
@@ -573,9 +534,18 @@ The job job_strain_4 was saved and received the ID: 8
 </div>
 </div>
 </div>
-</section>
-<section class="tex2jax_ignore mathjax_ignore" id="result">
-<h1>Result<a class="headerlink" href="#result" title="Link to this heading">#</a></h1>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">plot_energy_volume_curve</span><span class="p">(</span><span class="n">volume_lst</span><span class="p">,</span> <span class="n">energy_lst</span><span class="p">):</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">volume_lst</span><span class="p">,</span> <span class="n">energy_lst</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Volume&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Energy&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;evcurve.png&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>This concludes the first version of the simulation workflow, in the following the submission to HPC resources, the different options for data storage and the publication of the workflow are briefly discussed.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plot_energy_volume_curve</span><span class="p">(</span>
@@ -586,203 +556,37 @@ The job job_strain_4 was saved and received the ID: 8
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="_images/84ed6880b99448dad8a91ad428baa817ef7723488ec92bd8c159df8c6e8c7c23.png" src="_images/84ed6880b99448dad8a91ad428baa817ef7723488ec92bd8c159df8c6e8c7c23.png" />
+<img alt="_images/3c3546fdf3c194aec87021b00f063af55f0c01554ca09aec9089a9a7317e3215.png" src="_images/3c3546fdf3c194aec87021b00f063af55f0c01554ca09aec9089a9a7317e3215.png" />
 </div>
 </div>
 </section>
-<section class="tex2jax_ignore mathjax_ignore" id="summary">
-<h1>Summary<a class="headerlink" href="#summary" title="Link to this heading">#</a></h1>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pr</span><span class="o">.</span><span class="n">job_table</span><span class="p">()</span>
+<section id="submission-to-an-hpc-check-pointing-error-handling">
+<h2>Submission to an HPC / Check pointing / Error handling<a class="headerlink" href="#submission-to-an-hpc-check-pointing-error-handling" title="Link to this heading">#</a></h2>
+<p>While the local installation of the <code class="docutils literal notranslate"><span class="pre">pyiron_base</span></code> workflow manager requires no additional configuration, the connection to an HPC system is more evolved. The existing examples provided for specific HPC systems can be converted to jinja2 templates, by defining variables with double curly brackets. A minimalist template could be:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
+<span class="c1">#SBATCH --job-name={{job_name}}</span>
+<span class="c1">#SBATCH --chdir={{working_directory}}</span>
+<span class="c1">#SBATCH --cpus-per-task={{cores}}</span>
+
+<span class="p">{{</span><span class="n">command</span><span class="p">}}</span>
 </pre></div>
 </div>
+<p>Here the <code class="docutils literal notranslate"><span class="pre">job_name</span></code>, the <code class="docutils literal notranslate"><span class="pre">working_directory</span></code> and the number of compute <code class="docutils literal notranslate"><span class="pre">cores</span></code> can be specified as parameters. In the <code class="docutils literal notranslate"><span class="pre">pyiron_base</span></code> workflow manager such a submission script can then be selected based on its name as parameter of the <code class="docutils literal notranslate"><span class="pre">server</span></code> object:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">job_workflow</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">queue</span> <span class="o">=</span> <span class="s2">&quot;my_queue&quot;</span>
+<span class="n">job_workflow</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">cores</span> <span class="o">=</span> <span class="mi">64</span>
+</pre></div>
 </div>
-<div class="cell_output docutils container">
-<div class="output text_html"><div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>id</th>
-      <th>status</th>
-      <th>chemicalformula</th>
-      <th>job</th>
-      <th>subjob</th>
-      <th>projectpath</th>
-      <th>project</th>
-      <th>timestart</th>
-      <th>timestop</th>
-      <th>totalcputime</th>
-      <th>computer</th>
-      <th>hamilton</th>
-      <th>hamversion</th>
-      <th>parentid</th>
-      <th>masterid</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>1</td>
-      <td>finished</td>
-      <td>None</td>
-      <td>workflowdbcdde11bde789bfe23b268a60c426c2</td>
-      <td>/workflowdbcdde11bde789bfe23b268a60c426c2</td>
-      <td>None</td>
-      <td>/home/jovyan/test/</td>
-      <td>2024-03-27 18:09:12.391144</td>
-      <td>NaT</td>
-      <td>NaN</td>
-      <td>pyiron@jupyter-jan-2djanssen-2dqua-2dsso-5fpyiron-5fbase-2dtqm3r7gv#1</td>
-      <td>PythonFunctionContainerJob</td>
-      <td>0.4</td>
-      <td>None</td>
-      <td>None</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>2</td>
-      <td>finished</td>
-      <td>None</td>
-      <td>job_qe_minimize</td>
-      <td>/job_qe_minimize</td>
-      <td>None</td>
-      <td>/home/jovyan/test/</td>
-      <td>2024-03-27 18:09:12.461873</td>
-      <td>2024-03-27 18:09:58.263945</td>
-      <td>45.0</td>
-      <td>pyiron@jupyter-jan-2djanssen-2dqua-2dsso-5fpyiron-5fbase-2dtqm3r7gv#1</td>
-      <td>ExecutableContainerJob</td>
-      <td>0.4</td>
-      <td>None</td>
-      <td>None</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>3</td>
-      <td>finished</td>
-      <td>None</td>
-      <td>generate_structuresffd5c51457c48a1cff1923a2d98eb48c</td>
-      <td>/generate_structuresffd5c51457c48a1cff1923a2d98eb48c</td>
-      <td>None</td>
-      <td>/home/jovyan/test/</td>
-      <td>2024-03-27 18:09:58.313609</td>
-      <td>NaT</td>
-      <td>NaN</td>
-      <td>pyiron@jupyter-jan-2djanssen-2dqua-2dsso-5fpyiron-5fbase-2dtqm3r7gv#1</td>
-      <td>PythonFunctionContainerJob</td>
-      <td>0.4</td>
-      <td>None</td>
-      <td>None</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>4</td>
-      <td>finished</td>
-      <td>None</td>
-      <td>job_strain_0</td>
-      <td>/job_strain_0</td>
-      <td>None</td>
-      <td>/home/jovyan/test/</td>
-      <td>2024-03-27 18:09:58.477003</td>
-      <td>2024-03-27 18:10:07.059195</td>
-      <td>8.0</td>
-      <td>pyiron@jupyter-jan-2djanssen-2dqua-2dsso-5fpyiron-5fbase-2dtqm3r7gv#1</td>
-      <td>ExecutableContainerJob</td>
-      <td>0.4</td>
-      <td>None</td>
-      <td>None</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>5</td>
-      <td>finished</td>
-      <td>None</td>
-      <td>job_strain_1</td>
-      <td>/job_strain_1</td>
-      <td>None</td>
-      <td>/home/jovyan/test/</td>
-      <td>2024-03-27 18:10:07.429814</td>
-      <td>2024-03-27 18:10:17.057758</td>
-      <td>9.0</td>
-      <td>pyiron@jupyter-jan-2djanssen-2dqua-2dsso-5fpyiron-5fbase-2dtqm3r7gv#1</td>
-      <td>ExecutableContainerJob</td>
-      <td>0.4</td>
-      <td>None</td>
-      <td>None</td>
-    </tr>
-    <tr>
-      <th>5</th>
-      <td>6</td>
-      <td>finished</td>
-      <td>None</td>
-      <td>job_strain_2</td>
-      <td>/job_strain_2</td>
-      <td>None</td>
-      <td>/home/jovyan/test/</td>
-      <td>2024-03-27 18:10:17.833435</td>
-      <td>2024-03-27 18:10:28.145417</td>
-      <td>10.0</td>
-      <td>pyiron@jupyter-jan-2djanssen-2dqua-2dsso-5fpyiron-5fbase-2dtqm3r7gv#1</td>
-      <td>ExecutableContainerJob</td>
-      <td>0.4</td>
-      <td>None</td>
-      <td>None</td>
-    </tr>
-    <tr>
-      <th>6</th>
-      <td>7</td>
-      <td>finished</td>
-      <td>None</td>
-      <td>job_strain_3</td>
-      <td>/job_strain_3</td>
-      <td>None</td>
-      <td>/home/jovyan/test/</td>
-      <td>2024-03-27 18:10:28.190237</td>
-      <td>2024-03-27 18:10:40.343077</td>
-      <td>12.0</td>
-      <td>pyiron@jupyter-jan-2djanssen-2dqua-2dsso-5fpyiron-5fbase-2dtqm3r7gv#1</td>
-      <td>ExecutableContainerJob</td>
-      <td>0.4</td>
-      <td>None</td>
-      <td>None</td>
-    </tr>
-    <tr>
-      <th>7</th>
-      <td>8</td>
-      <td>finished</td>
-      <td>None</td>
-      <td>job_strain_4</td>
-      <td>/job_strain_4</td>
-      <td>None</td>
-      <td>/home/jovyan/test/</td>
-      <td>2024-03-27 18:10:40.400240</td>
-      <td>2024-03-27 18:10:53.349634</td>
-      <td>12.0</td>
-      <td>pyiron@jupyter-jan-2djanssen-2dqua-2dsso-5fpyiron-5fbase-2dtqm3r7gv#1</td>
-      <td>ExecutableContainerJob</td>
-      <td>0.4</td>
-      <td>None</td>
-      <td>None</td>
-    </tr>
-  </tbody>
-</table>
-</div></div></div>
-</div>
+<p>These lines are inserted before calling the <code class="docutils literal notranslate"><span class="pre">run()</span></code> function. The rest of the simulation protocol remains the same.</p>
+<p>When simulation protocols are up-scaling and iterated over a large number of parameters, certain parameter combinations might lead to poor conversion or even cause simulation code crashes. In the <code class="docutils literal notranslate"><span class="pre">pyiron_base</span></code> workflow manager these calculation are marked as <code class="docutils literal notranslate"><span class="pre">aborted</span></code>. This gives the user to inspect the calculation and in case the crash was not related to the parameter combination, individual jobs can be removed with the <code class="docutils literal notranslate"><span class="pre">remove_job()</span></code> function. Afterwards, the simulation protocol can be executed again. In this case the <code class="docutils literal notranslate"><span class="pre">pyiron_base</span></code> workflow manager recognizes the already completed calculation and only re-evaluates the removed broken calculation.</p>
+</section>
+<section id="data-storage-data-sharing">
+<h2>Data Storage / Data Sharing<a class="headerlink" href="#data-storage-data-sharing" title="Link to this heading">#</a></h2>
+<p>In the <code class="docutils literal notranslate"><span class="pre">pyiron_base</span></code> workflow manager the input of the calculation as well as the output are stored in the hierachical data format (HDF). In addition, <code class="docutils literal notranslate"><span class="pre">pyiron_base</span></code> can use a Structured Query Language (SQL) database, which acts as an index of all the <code class="docutils literal notranslate"><span class="pre">Job</span></code> objects and their HDF5 files. This file-based approach allows the user easily to browse through the results and at the same time the compressed storage in HDF5 and the internal hierarchy of the data format, enable the efficient storage of large tensors, like atomistic trajectories.</p>
+</section>
+<section id="publication-of-the-workflow">
+<h2>Publication of the workflow<a class="headerlink" href="#publication-of-the-workflow" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">pyiron_base</span></code> workflow manager provides a publication template to publish simulation workflows on Github. This template enables both the publication of the workflow as well as the publication of the results generated with a given workflow. For reproduciblity this publication template is based on sharing a conda environment file <code class="docutils literal notranslate"><span class="pre">environment.yml</span></code> in combination with the Jupyter notebook containing the simulation protocol and the archived <code class="docutils literal notranslate"><span class="pre">Job</span></code> objects. The Jupyter notebook is then rendered as static website with links to enable interactive execution using Jupyterbook and the mybinder service. As the <code class="docutils literal notranslate"><span class="pre">pyiron_base</span></code> workflow manager reloads existing calculation from the archive, a user of the interactive mybinder environment does not have to recompute the computationally expensive steps and still has the opportunity to interact with the provided workflow and data.</p>
+</section>
 </section>
 
     <script type="text/x-thebe-config">
@@ -821,7 +625,7 @@ The job job_strain_4 was saved and received the ID: 8
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Functions</p>
+        <p class="prev-next-title">jobflow</p>
       </div>
     </a>
 </div>
@@ -840,13 +644,12 @@ The job job_strain_4 was saved and received the ID: 8
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Functions</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#setup">Setup</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#workflow">Workflow</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#result">Result</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#summary">Summary</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation-setup">Installation / Setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implementation-of-a-new-simulation-code">Implementation of a new simulation code</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submission-to-an-hpc-check-pointing-error-handling">Submission to an HPC / Check pointing / Error handling</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-storage-data-sharing">Data Storage / Data Sharing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#publication-of-the-workflow">Publication of the workflow</a></li>
 </ul>
-
   </nav></div>
 
 </div></div>

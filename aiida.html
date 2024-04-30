@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Setup for running Quantum ESPRESSO &#8212; ADIS2023</title>
+    <title>Aiida &#8212; ADIS2023</title>
   
   
   
@@ -60,7 +60,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'aiida';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Functions" href="jobflow.html" />
+    <link rel="next" title="jobflow" href="jobflow.html" />
     <link rel="prev" title="Challenges for workflow frameworks" href="challenges.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -179,14 +179,9 @@
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="challenges.html">Challenges for workflow frameworks</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Setup for running Quantum ESPRESSO</a></li>
-
-<li class="toctree-l1"><a class="reference internal" href="jobflow.html">Functions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pyiron_base.html">Functions</a></li>
-
-
-
-
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Aiida</a></li>
+<li class="toctree-l1"><a class="reference internal" href="jobflow.html">jobflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pyiron_base.html">pyiron</a></li>
 </ul>
 
     </div>
@@ -356,7 +351,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Setup for running Quantum ESPRESSO</h1>
+    <h1>Aiida</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -366,18 +361,16 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Setup for running Quantum ESPRESSO</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#equation-of-state-curve-basic-qe">Equation of State curve - basic QE</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#importing-a-structure">Importing a structure</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#relaxing-the-geometry">Relaxing the geometry</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#calc-function-to-rescale-structures">Calc function to rescale structures</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#equation-of-state-curve-basic-qe">Equation of State curve - basic QE</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#importing-a-structure">Importing a structure</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#relaxing-the-geometry">Relaxing the geometry</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#calc-function-to-rescale-structures">Calc function to rescale structures</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#eos-work-function-version">EOS: Work function version</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#work-chain-version">Work chain version</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#using-the-builder">Using the <code class="docutils literal notranslate"><span class="pre">builder</span></code></a></li>
 </ul>
-</li>
-</ul>
-
             </nav>
         </div>
     </div>
@@ -388,8 +381,8 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="setup-for-running-quantum-espresso">
-<h1>Setup for running Quantum ESPRESSO<a class="headerlink" href="#setup-for-running-quantum-espresso" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="aiida">
+<h1>Aiida<a class="headerlink" href="#aiida" title="Link to this heading">#</a></h1>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">subprocess</span>
@@ -543,9 +536,8 @@ document.write(`
 </div>
 </div>
 </div>
-</section>
-<section class="tex2jax_ignore mathjax_ignore" id="equation-of-state-curve-basic-qe">
-<h1>Equation of State curve - basic QE<a class="headerlink" href="#equation-of-state-curve-basic-qe" title="Link to this heading">#</a></h1>
+<section id="equation-of-state-curve-basic-qe">
+<h2>Equation of State curve - basic QE<a class="headerlink" href="#equation-of-state-curve-basic-qe" title="Link to this heading">#</a></h2>
 <p>Running an EOS without all the fancy features in the <code class="docutils literal notranslate"><span class="pre">aiida-quantumespresso</span></code> plugin.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -564,7 +556,7 @@ document.write(`
 </div>
 </div>
 <section id="importing-a-structure">
-<h2>Importing a structure<a class="headerlink" href="#importing-a-structure" title="Link to this heading">#</a></h2>
+<h3>Importing a structure<a class="headerlink" href="#importing-a-structure" title="Link to this heading">#</a></h3>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ase.build</span> <span class="kn">import</span> <span class="n">bulk</span>
@@ -576,7 +568,7 @@ document.write(`
 </div>
 </section>
 <section id="relaxing-the-geometry">
-<h2>Relaxing the geometry<a class="headerlink" href="#relaxing-the-geometry" title="Link to this heading">#</a></h2>
+<h3>Relaxing the geometry<a class="headerlink" href="#relaxing-the-geometry" title="Link to this heading">#</a></h3>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">resources</span> <span class="o">=</span> <span class="p">{</span>
@@ -630,7 +622,7 @@ document.write(`
 </div>
 </section>
 <section id="calc-function-to-rescale-structures">
-<h2>Calc function to rescale structures<a class="headerlink" href="#calc-function-to-rescale-structures" title="Link to this heading">#</a></h2>
+<h3>Calc function to rescale structures<a class="headerlink" href="#calc-function-to-rescale-structures" title="Link to this heading">#</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">calcfunction</span></code> below takes an input structure and rescales it to different volumes.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -679,6 +671,7 @@ document.write(`
 </div>
 </div>
 </div>
+</section>
 </section>
 <section id="eos-work-function-version">
 <h2>EOS: Work function version<a class="headerlink" href="#eos-work-function-version" title="Link to this heading">#</a></h2>
@@ -1032,7 +1025,7 @@ structure: Al
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Functions</p>
+        <p class="prev-next-title">jobflow</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -1052,18 +1045,16 @@ structure: Al
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Setup for running Quantum ESPRESSO</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#equation-of-state-curve-basic-qe">Equation of State curve - basic QE</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#importing-a-structure">Importing a structure</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#relaxing-the-geometry">Relaxing the geometry</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#calc-function-to-rescale-structures">Calc function to rescale structures</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#equation-of-state-curve-basic-qe">Equation of State curve - basic QE</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#importing-a-structure">Importing a structure</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#relaxing-the-geometry">Relaxing the geometry</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#calc-function-to-rescale-structures">Calc function to rescale structures</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#eos-work-function-version">EOS: Work function version</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#work-chain-version">Work chain version</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#using-the-builder">Using the <code class="docutils literal notranslate"><span class="pre">builder</span></code></a></li>
 </ul>
-</li>
-</ul>
-
   </nav></div>
 
 </div></div>
