@@ -6,3 +6,4 @@ chapters:
 - file: aiida.ipynb
 - file: jobflow.ipynb
 - file: pyiron_base.ipynb
+- file: conclusion.md
