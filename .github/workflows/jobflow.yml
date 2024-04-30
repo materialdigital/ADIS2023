@@ -1,0 +1,26 @@
+name: jobflow
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    - uses: conda-incubator/setup-miniconda@v2
+      with:
+        auto-update-conda: true
+        python-version: "3.11"
+        environment-file: environment.yml
+        auto-activate-base: false
+    - name: Tests
+      shell: bash -l {0}
+      run: |
+        conda install -c conda-forge papermill
+        papermill jobflow.ipynb jobflow-out.ipynb -k "python3"
