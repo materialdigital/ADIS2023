@@ -1,0 +1,8 @@
+format: jb-book
+root: README
+chapters:
+- file: introduction.md
+- file: challenges.md
+- file: aiida.ipynb
+- file: jobflow.ipynb
+- file: pyiron_base.ipynb

@@ -1,0 +1,28 @@
+name: Jupyterbook
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: conda-incubator/setup-miniconda@v2
+      with:
+        auto-update-conda: true
+        python-version: "3.11"
+        environment-file: book/environment.yml
+        auto-activate-base: false
+    - name: Install Jupyterbook
+      shell: bash -l {0}
+      run: |
+        cp book/logo_dark.png .
+        cp book/_config.yml .
+        cp book/_toc.yml .
+        cp book/*.md .
+        cp -r book/images .
+        jupyter-book build . --path-output public
+    - run: mv public/_build/html public_html
+    - run: touch public_html/.nojekyll
