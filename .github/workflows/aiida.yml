@@ -22,5 +22,6 @@ jobs:
     - name: Tests
       shell: bash -l {0}
       run: |
+        pip install -e aiida_qe_basic
         conda install -c conda-forge jupyter papermill
         papermill aiida.ipynb aiida-out.ipynb -k "python3"
