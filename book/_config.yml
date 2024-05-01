@@ -1,6 +1,6 @@
 title: ADIS2023
 author: pyiron
-logo: logo_dark.png
+logo: images/adislogo.png
 
 execute:
   execute_notebooks           : off
