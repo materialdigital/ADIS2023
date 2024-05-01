@@ -18,7 +18,6 @@ jobs:
     - name: Install Jupyterbook
       shell: bash -l {0}
       run: |
-        cp book/logo_dark.png .
         cp book/_config.yml .
         cp book/_toc.yml .
         cp book/*.md .
