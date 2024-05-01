@@ -1,14 +1,2 @@
-# Quantum Espresso Workflow
-The structure optimization of an Aluminium bulk structure followed by the calculation of the bulk modulus by computing the energy for different volumes is implemented in three different workflow frameworks, [Aiida](https://aiida.net), [jobflow](https://materialsproject.github.io/jobflow/) and [pyiron_base](https://pyiron.org). 
-
-Test it on: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/materialdigital/ADIS2023/HEAD)
-
-## Explanation 
-* `adis_tools` - quantum espresso parser independent of the workflow frameworks. 
-* `aiida_qe_basic` - simple Aiida interface.
-* `espresso/pseudo/Al.pbe-n-kjpaw_psl.1.0.0.UPF` - This is the pseudo potential for qunatum espresso. By placing it in `~/espresso/pseudo`, it is automatically detected by quantum espresso.
-* `aiida.ipynb` - workflow implemented in [Aiida](https://aiida.net)
-* `environment.yml` - Conda environment to define the dependencies.
-* `jobflow.ipynb` - workflow implemented in [jobflow](https://materialsproject.github.io/jobflow/)
-* `postBuild` - script to install `aiida_qe_basic` in the mybinder environment.
-* `pyiron_base.ipynb` - workflow implemented in [pyiron_base](https://pyiron.org) 
+# ADIS 2023
+As part of the [Ab initio Description of Iron and Steel (ADIS2023): Digitalization and Workflows workshop](https://www.mpie.de/4902385/adis2023) the developers of the workflow frameworks [Aiida](https://aiida.net), [jobflow](https://materialsproject.github.io/jobflow/), [pyiron](https://pyiron.org) and [simstack](https://simstack.readthedocs.io) met and discussded their frameworks. During these discussions it became clear that while the naming and the extend of the implementation of certain components differ, there were also large number of similarities. To enable a more direct comparison of the different frameworks, the same workflow was implemented in all four workflow frameworks. These implementations are shared in this [repository](https://github.com/materialdigital/ADIS2023) and are rendered as a [jupyter book website](https://materialdigital.github.io/ADIS2023). The examples can even be executed directly in the web browser using [mybinder](https://mybinder.org/v2/gh/materialdigital/ADIS2023/HEAD). 
