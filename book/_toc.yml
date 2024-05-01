@@ -6,4 +6,5 @@ chapters:
 - file: aiida.ipynb
 - file: jobflow.ipynb
 - file: pyiron_base.ipynb
+- file: simstack.md
 - file: conclusion.md
