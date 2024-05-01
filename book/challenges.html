@@ -182,6 +182,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../aiida.html">Aiida</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../jobflow.html">jobflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../pyiron_base.html">pyiron</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../simstack.html">SimStack</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../conclusion.html">Conclusion</a></li>
 </ul>
 
@@ -360,8 +361,8 @@ document.write(`
 <p>In the following, we compare the implementation of the same workflow in four different simulation frameworks, namely AiiDA, jobflow, pyiron and Simstack. All four of these frameworks are released as open-source software and developed in the Python programming language</p>
 <section id="example-workflow">
 <h2>Example Workflow<a class="headerlink" href="#example-workflow" title="Link to this heading">#</a></h2>
-<p><img alt="workflow" src="../_images/workflow.png" />
-The comparison is focused on highlighting the implementation of a new simulation code and a simulation workflow in the four workflow frameworks. The calculation of a structure optimization followed by the calculation of the bulk modulus from fitting an energy volume curve with the quantum espresso open-source density functional theory (DFT) simulation code is chosen as an example workflow. The workflow consists of the following four steps:</p>
+<p><img alt="workflow" src="../_images/workflow.png" /></p>
+<p>The comparison is focused on highlighting the implementation of a new simulation code and a simulation workflow in the four workflow frameworks. The calculation of a structure optimization followed by the calculation of the bulk modulus from fitting an energy volume curve with the quantum espresso open-source density functional theory (DFT) simulation code is chosen as an example workflow. The workflow consists of the following four steps:</p>
 <ul class="simple">
 <li><p>Create a face-centred-cubic Aluminium supercell with 4 atoms and a lattice constant of 4.15A.</p></li>
 <li><p>Use the quantum espresso simulation code to optimize both the lattice constant and the positions in the crystal structure.</p></li>
