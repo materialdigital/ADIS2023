@@ -8,7 +8,9 @@ Over the recent years a number of simulation frameworks have been developed whic
 In the following, we compare the implementation of the same workflow in four different simulation frameworks, namely AiiDA, jobflow, pyiron and Simstack. All four of these frameworks are released as open-source software and developed in the Python programming language
 
 ## Example Workflow
+
 ![workflow](images/workflow.png)
+
 The comparison is focused on highlighting the implementation of a new simulation code and a simulation workflow in the four workflow frameworks. The calculation of a structure optimization followed by the calculation of the bulk modulus from fitting an energy volume curve with the quantum espresso open-source density functional theory (DFT) simulation code is chosen as an example workflow. The workflow consists of the following four steps: 
 
 * Create a face-centred-cubic Aluminium supercell with 4 atoms and a lattice constant of 4.15A.
