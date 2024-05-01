@@ -1,4 +1,4 @@
-# Challenges for workflow frameworks
+# Challenges
 Over the recent years a number of simulation frameworks have been developed which address various aspects of the development of simulation protocols. The general challenges are: 
 
 * Interface with the simulation codes**: While some modern simulation codes already provide Python bindings, the majority require simulation code-specific input files, have specific variable names and the internal unit system used by a given simulation code might differ depending on the community it was developed for.
