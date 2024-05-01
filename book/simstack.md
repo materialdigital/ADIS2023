@@ -7,6 +7,7 @@ In essence, Simstack has one purpose and that is to simplify the job of computat
 
 ## Installation / Setup
 For SimStack installation and setup, we use Conda packages directly for its client and server components. When the server is started, it runs in the user space making auto processing possible once a user has finished interacting with it. Data exchange between client and server is carried out in SimStack by SSH, that safe and efficient. This simple approach reduces the complexity of the setup process.
+
 ![client and server](images/simstack-client-server.png)
 
 ## Implementation of a new simulation code
@@ -29,7 +30,9 @@ One of the main part of a SimStack workflow is an XML configuration file that de
 </WaNoTemplate>
 ```
 And here's how it looks directly in SimStack:
+
 ![wano settings](images/Structure-creation-wano-settings.png)
+
 After starting the workflow, `rendered_wano.yml` file is produced by SimStack, which is all the parameters written by the user in XML configuration but in a form that allows to bridge the user input data and Python script which are all the parameter values, thus the simulation is executed with parameters exactly the same as the one the researcher specified.
 
 The Python script first reads the `rendered_wano.yml` file and extracts the user-defined parameters. It is then used to create a structure file - `structure.xyz` by leveraging the ASE library:
@@ -51,7 +54,9 @@ if __name__ == '__main__':
 This concludes the simulation that covers several key aspects: from defining atomic steps and parameters to integrating with HPC systems. The importance of this approach is emphasized by the need to ensure flexibility and modularity in the simulation creation process, achieved through the use of the Jinja templating engine for dynamic substitution of user-defined parameters and Python scripts for executing simulations.      
 
 ## Submission to an HPC / Check pointing / Error handling
+
 ![wano completed](images/Structure-of-completed-workflow.png)
+
 The migration of configurations is simple with Simstack, moving simulations from destined for a local system to the HPC. Users first run the simulation locally. Then safely, the simulation code and its inputs are moved to an HPC using SSH.
 
 Simstack’s central role in mediating between the workflow and the scheduling system of the HPC begins once it is installed on an HPC. It continuously watches over your simulation, making sure each step proceeds as planned. When a step is completed, Simstack subsequently automates the next workflow step via its output (so long as this must be another job). This efficient setup minimizes all unnecessary waits and maximizes HPC resource use.
