@@ -12,7 +12,7 @@ from . import schemas
 def parse_pw(xml_file):
     """Parse a Quantum Espresso XML output file."""
 
-    xml_dict = XMLSchema(files(schemas) / 'qes_230310.xsd').to_dict(xml_file)
+    xml_dict = XMLSchema(str(files(schemas) / 'qes_230310.xsd')).to_dict(xml_file)
 
     parsed_results = {}
 
