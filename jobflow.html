@@ -343,7 +343,9 @@ document.write(`
   </button>
 `);
 </script>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -359,6 +361,18 @@ document.write(`
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation-setup">Installation / Setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#basic-introduction-to-jobflow-concepts">Basic introduction to <code class="docutils literal notranslate"><span class="pre">jobflow</span></code> concepts</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submission-to-an-hpc-check-pointing-error-handling">Submission to an HPC / Check pointing / Error handling</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-storage-data-sharing">Data Storage / Data Sharing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#publication-of-the-workflow">Publication of the workflow</a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -370,6 +384,97 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="jobflow">
 <h1>jobflow<a class="headerlink" href="#jobflow" title="Link to this heading">#</a></h1>
+<p>The Python package <a class="reference external" href="https://materialsproject.github.io/jobflow/index.html"><code class="docutils literal notranslate"><span class="pre">jobflow</span></code></a> was developed in the context of the <a class="reference external" href="https://next-gen.materialsproject.org/">Materials Project</a> and its overall flexibility allows for building workflows that go beyond the usage in material science. <code class="docutils literal notranslate"><span class="pre">jobflow</span></code> forms the basis of <a class="reference external" href="https://materialsproject.github.io/atomate2/index.html"><code class="docutils literal notranslate"><span class="pre">atomate2</span></code></a>, a software package for data generation workflows. <code class="docutils literal notranslate"><span class="pre">jobflow</span></code> and <code class="docutils literal notranslate"><span class="pre">atomate2</span></code> are key packages of the Materials Project. <code class="docutils literal notranslate"><span class="pre">jobflow</span></code> was especially designed to simplify the execution of dynamic workflows – when the actual number of jobs is dynamically determined upon runtime instead of being statically fixed before running the workflow(s).</p>
+<section id="installation-setup">
+<h2>Installation / Setup<a class="headerlink" href="#installation-setup" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">jobflow</span></code> can be installed via ‘pip install’ and be run with the default setup. It will then internally rely on a predefined  memory database as defined in the software package <a class="reference external" href="https://materialsproject.github.io/maggma/"><code class="docutils literal notranslate"><span class="pre">maggma</span></code></a>. For large-scale usage, a <a class="reference external" href="https://www.mongodb.com/">MongoDB</a>-like database might be specified for each project in a jobflow.yaml file.
+A high-throughput setup (i.e., parallel execution of independent parts in the workflow) of <code class="docutils literal notranslate"><span class="pre">jobflow</span></code> can be achieved using additional packages like <a class="reference external" href="https://materialsproject.github.io/fireworks/"><code class="docutils literal notranslate"><span class="pre">fireworks</span></code></a> or <a class="reference external" href="https://matgenix.github.io/jobflow-remote/"><code class="docutils literal notranslate"><span class="pre">jobflow-remote</span></code></a>. Both packages require a MongoDB database. In case of <code class="docutils literal notranslate"><span class="pre">FireWorks</span></code>, however, the MongoDB database needs to be connected to the compute nodes. <code class="docutils literal notranslate"><span class="pre">jobflow-remote</span></code> allows remote submission options that only require a MongoDB database on the submitting computer but not the compute nodes. It can also deal with multi-factor authentification.</p>
+</section>
+<section id="basic-introduction-to-jobflow-concepts">
+<h2>Basic introduction to <code class="docutils literal notranslate"><span class="pre">jobflow</span></code> concepts<a class="headerlink" href="#basic-introduction-to-jobflow-concepts" title="Link to this heading">#</a></h2>
+<p>Before diving into the simulation code and more details, we need to discuss the core concepts of <code class="docutils literal notranslate"><span class="pre">jobflow</span></code> (written in Python). It defines <code class="docutils literal notranslate"><span class="pre">job</span></code> and <code class="docutils literal notranslate"><span class="pre">Flow</span></code> objects to handle the correct sequential execution of a workflow. A <code class="docutils literal notranslate"><span class="pre">job</span></code> is a class that allows for the delayed execution of a function. Functions can be easily transformed into a <code class="docutils literal notranslate"><span class="pre">job</span></code> with the <code class="docutils literal notranslate"><span class="pre">&#64;job</span></code> decorator, as demonstrated here with a test function:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">jobflow</span> <span class="kn">import</span> <span class="n">job</span>
+<span class="nd">@job</span>
+<span class="k">def</span> <span class="nf">my_function</span><span class="p">(</span><span class="n">my_parameter</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">my_parameter</span>
+
+<span class="n">job1</span> <span class="o">=</span> <span class="n">my_function</span><span class="p">(</span><span class="n">my_parameter</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>When we connect several <code class="docutils literal notranslate"><span class="pre">jobs</span></code> to generate a <code class="docutils literal notranslate"><span class="pre">Flow</span></code> object, we can construct a whole workflow. The list of connected <code class="docutils literal notranslate"><span class="pre">jobs</span></code> has to be passed to initialize a <code class="docutils literal notranslate"><span class="pre">Flow</span></code>. The order of the <code class="docutils literal notranslate"><span class="pre">jobs</span></code> is automatically determined by the job connectivity via the <code class="docutils literal notranslate"><span class="pre">job.output</span></code> upon runtime. We can also connect several <code class="docutils literal notranslate"><span class="pre">jobs</span></code> and <code class="docutils literal notranslate"><span class="pre">Flows</span></code> to create a new <code class="docutils literal notranslate"><span class="pre">Flow</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">jobflow</span> <span class="kn">import</span> <span class="n">job</span><span class="p">,</span> <span class="n">Flow</span>
+<span class="nd">@job</span>
+<span class="k">def</span> <span class="nf">my_function</span><span class="p">(</span><span class="n">my_parameter</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">my_parameter</span>
+<span class="nd">@job</span>
+<span class="k">def</span> <span class="nf">my_second_function</span><span class="p">(</span><span class="n">my_parameter</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">my_parameter</span>
+
+<span class="n">job1</span> <span class="o">=</span> <span class="n">my_function</span><span class="p">(</span><span class="n">my_parameter</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">job2</span> <span class="o">=</span> <span class="n">my_second_function</span><span class="p">(</span><span class="n">job1</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
+<span class="n">flow</span> <span class="o">=</span> <span class="n">Flow</span><span class="p">([</span><span class="n">job1</span><span class="p">,</span> <span class="n">job2</span><span class="p">],</span> <span class="n">job2</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>The following simple <a class="reference external" href="https://mermaid.live">Mermaid</a> graph will illustrate the workflow <code class="docutils literal notranslate"><span class="pre">flow</span></code> from the example above:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">display</span>
+<span class="kn">from</span> <span class="nn">jobflow.utils.graph</span> <span class="kn">import</span> <span class="n">to_mermaid</span>
+
+<span class="k">def</span> <span class="nf">mm</span><span class="p">(</span><span class="n">graph</span><span class="p">):</span>
+    <span class="n">graphbytes</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span>
+    <span class="n">base64_bytes</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">graphbytes</span><span class="p">)</span>
+    <span class="n">base64_string</span> <span class="o">=</span> <span class="n">base64_bytes</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="s2">&quot;https://mermaid.ink/img/&quot;</span> <span class="o">+</span> <span class="n">base64_string</span><span class="p">))</span>
+
+<span class="n">graph_source</span> <span class="o">=</span> <span class="n">to_mermaid</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="n">show_flow_boxes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">mm</span><span class="p">(</span><span class="n">graph_source</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><img src="https://mermaid.ink/img/Zmxvd2NoYXJ0IFRECiAgICAyOTQwZDdkYS1iMWUyLTQ2M2UtYTY0Mi01ZWJiYjQwZWJiNWMobXlfZnVuY3Rpb24pIC0tPnxvdXRwdXR8IGJhNjA2N2IzLWM1MjktNDhmOS04NjhkLWFhM2I1MzI3MmVlZChteV9zZWNvbmRfZnVuY3Rpb24pCiAgICAyOTQwZDdkYS1iMWUyLTQ2M2UtYTY0Mi01ZWJiYjQwZWJiNWMobXlfZnVuY3Rpb24pCiAgICBiYTYwNjdiMy1jNTI5LTQ4ZjktODY4ZC1hYTNiNTMyNzJlZWQobXlfc2Vjb25kX2Z1bmN0aW9uKQ=="/></div></div>
+</div>
+<p>With a so-called <code class="docutils literal notranslate"><span class="pre">Maker</span></code> object, the implementation of <code class="docutils literal notranslate"><span class="pre">job</span></code> and <code class="docutils literal notranslate"><span class="pre">Flow</span></code> objects can be further simplified. It is an extended dataclass object that generates a <code class="docutils literal notranslate"><span class="pre">job</span></code> or <code class="docutils literal notranslate"><span class="pre">Flow</span></code> with the <code class="docutils literal notranslate"><span class="pre">make</span></code> method. Dataclasses are used as they allow defining immutable default values. These <code class="docutils literal notranslate"><span class="pre">Makers</span></code> can then be used to reuse code via the usual inheritance in Python.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">jobflow</span> <span class="kn">import</span> <span class="n">Maker</span>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">MyMaker</span><span class="p">(</span><span class="n">Maker</span><span class="p">):</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;My Maker&quot;</span>
+    <span class="n">scaling</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.1</span>
+
+    <span class="nd">@job</span>
+    <span class="k">def</span> <span class="nf">make</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">my_parameter</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">my_parameter</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">scaling</span>
+    
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">MyInheritedMaker</span><span class="p">(</span><span class="n">MyMaker</span><span class="p">):</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;My inherited Maker&quot;</span>
+
+<span class="n">job1</span><span class="o">=</span><span class="n">MyMaker</span><span class="p">()</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">my_parameter</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">job2</span><span class="o">=</span><span class="n">MyInheritedMaker</span><span class="p">()</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">my_parameter</span><span class="o">=</span><span class="n">job1</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>When faced with dynamic workflows (where the number of jobs is unclear before execution) a <code class="docutils literal notranslate"><span class="pre">Response</span></code> object instead of a <code class="docutils literal notranslate"><span class="pre">job</span></code> or <code class="docutils literal notranslate"><span class="pre">Flow</span></code> object can be returned. There are several options to insert the new list of jobs into the <code class="docutils literal notranslate"><span class="pre">Response</span></code> object.
+We will now use this knowledge to implement the Quantum Espresso-related tasks for calculating a “Energy vs. Volume” curve. It’s important to point out that this is only a basic implementation, and further extensions towards data validation or for nicer user experience can be added.</p>
+<blockquote>
+<div><p>ℹ️ Note: all outputs of a job need to be transformable into a JSON-like format. Therefore, we use a pymatgen <code class="docutils literal notranslate"><span class="pre">Structure</span></code> object here instead of an ase <code class="docutils literal notranslate"><span class="pre">Atoms</span></code> object. <code class="docutils literal notranslate"><span class="pre">Structure</span></code> inherits from the Python package monty’s MSONable class allowing an easy serialization into a <code class="docutils literal notranslate"><span class="pre">dict</span></code>. In addition, commands to execute jobs might be set in such a way that users can easily adapt them in a configuration file.</p>
+</div></blockquote>
+<p>For building the Quantum Espresso (QE)-related tasks, we start by importing essential tools to be able to create and navigate directories (<code class="docutils literal notranslate"><span class="pre">os</span></code>) and execute programs like the QE binary (<code class="docutils literal notranslate"><span class="pre">subprocess</span></code>). <code class="docutils literal notranslate"><span class="pre">pydantic</span></code> is very convenient for managing all kinds of data types.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">subprocess</span>
@@ -379,6 +484,7 @@ document.write(`
 </div>
 </div>
 </div>
+<p>Then we import tools for data plotting and mathematical operations and manipulation.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -387,6 +493,7 @@ document.write(`
 </div>
 </div>
 </div>
+<p>ASE provides us with a method to create bulk crystal systems and a writer to handle output.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ase.build</span> <span class="kn">import</span> <span class="n">bulk</span>
@@ -395,6 +502,7 @@ document.write(`
 </div>
 </div>
 </div>
+<p>From ADIS we take the QE XML output parser.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">adis_tools.parsers</span> <span class="kn">import</span> <span class="n">parse_pw</span>
@@ -402,9 +510,10 @@ document.write(`
 </div>
 </div>
 </div>
+<p>As we want to calculate a (E, V) curve with QE, we start by implementing a function to apply a certain strain to the original structure.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">generate_structures</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">strain_lst</span><span class="p">):</span> 
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">generate_structures</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">strain_lst</span><span class="p">):</span>  <span class="c1"># structure should be of ase Atoms type</span>
     <span class="n">structure_lst</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">strain</span> <span class="ow">in</span> <span class="n">strain_lst</span><span class="p">:</span>
         <span class="n">structure_strain</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -418,6 +527,7 @@ document.write(`
 </div>
 </div>
 </div>
+<p>Then we define a function to plot and save the (E, V) curve as a PNG file.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">plot_energy_volume_curve</span><span class="p">(</span><span class="n">volume_lst</span><span class="p">,</span> <span class="n">energy_lst</span><span class="p">):</span>
@@ -429,6 +539,7 @@ document.write(`
 </div>
 </div>
 </div>
+<p>Next, we need a function to write the QE input files. The <code class="docutils literal notranslate"><span class="pre">input_dict</span></code> has to contain all essential input information like the structure, the pseudopotentials, the number of kpoints, the calculation type and the smearing type.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">write_input</span><span class="p">(</span><span class="n">input_dict</span><span class="p">,</span> <span class="n">working_directory</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">):</span>
@@ -452,6 +563,7 @@ document.write(`
 </div>
 </div>
 </div>
+<p>Then, we also need to define a function to collect the output from the QE calculation to pass it to <code class="docutils literal notranslate"><span class="pre">plot_energy_volume_curve</span></code> in order to plot the actual figure. Here we make use of the ADIS QE XML output parser <code class="docutils literal notranslate"><span class="pre">parse_pw</span></code>.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">collect_output</span><span class="p">(</span><span class="n">working_directory</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">):</span>
@@ -465,29 +577,16 @@ document.write(`
 </div>
 </div>
 </div>
+<p>Now, we need to systematically handle the QE input. We make use of the pymatgen <code class="docutils literal notranslate"><span class="pre">InputSet</span></code> and <code class="docutils literal notranslate"><span class="pre">InputGenerator</span></code> classes to control and define the input data format. The <code class="docutils literal notranslate"><span class="pre">QEInputSet</span></code> defines the input information format which will be followed by the <code class="docutils literal notranslate"><span class="pre">QEInputGenerator</span></code>. We also define an extra <code class="docutils literal notranslate"><span class="pre">QEInputStaticGenerator</span></code> class (inheriting from <code class="docutils literal notranslate"><span class="pre">QEInputGenerator</span></code>) to be able to separately handle the static QE calculations for every strained structure in a convenient way.  Finally, we define the function <code class="docutils literal notranslate"><span class="pre">write_qe_input_set</span></code> to write the QE input files into the current working directory.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymatgen.io.core</span> <span class="kn">import</span> <span class="n">InputSet</span><span class="p">,</span> <span class="n">InputGenerator</span>
-<span class="kn">from</span> <span class="nn">pymatgen.io.ase</span> <span class="kn">import</span> <span class="n">MSONAtoms</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
-<span class="n">QE_CMD</span><span class="o">=</span> <span class="s2">&quot;mpirun -np 1 pw.x -in input.pwi &gt; output.pwo&quot;</span>
-<span class="k">def</span> <span class="nf">run_qe</span><span class="p">(</span><span class="n">qe_cmd</span><span class="o">=</span><span class="n">QE_CMD</span><span class="p">):</span>
-    <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">(</span><span class="n">qe_cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">universal_newlines</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 
-<span class="k">class</span> <span class="nc">QETaskDoc</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-    <span class="n">structure</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">MSONAtoms</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;ASE structure&quot;</span><span class="p">)</span>
-    <span class="n">energy</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;DFT energy in eV&quot;</span><span class="p">)</span>
-    <span class="n">volume</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;volume in Angstrom^3&quot;</span><span class="p">)</span>
-    
-    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_directory</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">working_directory</span><span class="p">):</span>
-        <span class="n">output</span><span class="o">=</span><span class="n">collect_output</span><span class="p">(</span><span class="n">working_directory</span><span class="o">=</span><span class="n">working_directory</span><span class="p">)</span>
-        <span class="c1"># structure object needs to be serializable, i.e., we need an additional transformation</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">MSONAtoms</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;structure&quot;</span><span class="p">]),</span> <span class="n">energy</span><span class="o">=</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;energy&quot;</span><span class="p">],</span> <span class="n">volume</span><span class="o">=</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;volume&quot;</span><span class="p">])</span>
 
 <span class="k">class</span> <span class="nc">QEInputSet</span><span class="p">(</span><span class="n">InputSet</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Writes an input based on an input_dict</span>
+<span class="sd">    Writes an QE input based on an input_dict</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">input_dict</span> <span class="o">=</span> <span class="n">input_dict</span>
@@ -495,12 +594,12 @@ document.write(`
     <span class="k">def</span> <span class="nf">write_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">working_directory</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">):</span>
         <span class="n">write_input</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_dict</span><span class="p">,</span> <span class="n">working_directory</span><span class="o">=</span><span class="n">working_directory</span><span class="p">)</span>
 
-<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-
-
 
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">QEInputGenerator</span><span class="p">(</span><span class="n">InputGenerator</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates an QE input based on the format given in QEInputSet.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">pseudopotentials</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;Al&quot;</span><span class="p">:</span> <span class="s2">&quot;Al.pbe-n-kjpaw_psl.1.0.0.UPF&quot;</span><span class="p">})</span>
     <span class="n">kpts</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
     <span class="n">calculation</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;vc-relax&quot;</span>
@@ -531,11 +630,30 @@ document.write(`
 </div>
 </div>
 </div>
+<p>The next steps are all concerned about handling the execution of QE and the output data collection. We start by defining a QE task document <code class="docutils literal notranslate"><span class="pre">QETaskDoc</span></code> to systematically collect the output data. For the (E, V) curve, the energy and volume are of course the most important information. The task document could be further extended to contain information that is relevant for other purposes. Next, we define a <code class="docutils literal notranslate"><span class="pre">BaseQEMaker</span></code> to handle generic QE jobs (in our case for the structural relaxation) and a separate <code class="docutils literal notranslate"><span class="pre">StaticQEMaker</span></code> for the static QE calculations. The <code class="docutils literal notranslate"><span class="pre">BaseQEMaker</span></code> is expecting the generic input set generated by <code class="docutils literal notranslate"><span class="pre">QEInputGenerator</span></code>, while <code class="docutils literal notranslate"><span class="pre">StaticQEMaker</span></code> expects the <code class="docutils literal notranslate"><span class="pre">QEInputStaticGenerator</span></code> type. As the <code class="docutils literal notranslate"><span class="pre">StaticQEMaker</span></code> inherits from the <code class="docutils literal notranslate"><span class="pre">BaseQEMaker</span></code>, we only need to make sure to pass the correct input set generator type.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span> <span class="nn">jobflow</span> <span class="kn">import</span> <span class="n">job</span><span class="p">,</span> <span class="n">Maker</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.ase</span> <span class="kn">import</span> <span class="n">MSONAtoms</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 
+
+<span class="n">QE_CMD</span><span class="o">=</span> <span class="s2">&quot;mpirun -np 1 pw.x -in input.pwi &gt; output.pwo&quot;</span>
+<span class="k">def</span> <span class="nf">run_qe</span><span class="p">(</span><span class="n">qe_cmd</span><span class="o">=</span><span class="n">QE_CMD</span><span class="p">):</span>
+    <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">(</span><span class="n">qe_cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">universal_newlines</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    
+    
+<span class="k">class</span> <span class="nc">QETaskDoc</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">structure</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">MSONAtoms</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;ASE structure&quot;</span><span class="p">)</span>
+    <span class="n">energy</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;DFT energy in eV&quot;</span><span class="p">)</span>
+    <span class="n">volume</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;volume in Angstrom^3&quot;</span><span class="p">)</span>
+    
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_directory</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">working_directory</span><span class="p">):</span>
+        <span class="n">output</span><span class="o">=</span><span class="n">collect_output</span><span class="p">(</span><span class="n">working_directory</span><span class="o">=</span><span class="n">working_directory</span><span class="p">)</span>
+        <span class="c1"># structure object needs to be serializable, i.e., we need an additional transformation</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">MSONAtoms</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;structure&quot;</span><span class="p">]),</span> <span class="n">energy</span><span class="o">=</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;energy&quot;</span><span class="p">],</span> <span class="n">volume</span><span class="o">=</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;volume&quot;</span><span class="p">])</span>
 
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">BaseQEMaker</span><span class="p">(</span><span class="n">Maker</span><span class="p">):</span>
@@ -575,10 +693,10 @@ document.write(`
         <span class="n">write_qe_input_set</span><span class="p">(</span>
             <span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="n">input_set_generator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">input_set_generator</span><span class="p">)</span>
 
-        <span class="c1"># qe</span>
+        <span class="c1"># run the QE software</span>
         <span class="n">run_qe</span><span class="p">()</span>
 
-        <span class="c1"># parse qe outputs</span>
+        <span class="c1"># parse QE outputs in form of a task document</span>
         <span class="n">task_doc</span><span class="o">=</span><span class="n">QETaskDoc</span><span class="o">.</span><span class="n">from_directory</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
         
         <span class="k">return</span> <span class="n">task_doc</span>
@@ -598,10 +716,17 @@ document.write(`
 
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;static qe job&quot;</span>
     <span class="n">input_set_generator</span><span class="p">:</span> <span class="n">QEInputGenerator</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">QEInputStaticGenerator</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Finally, it’s time to orchestrate all functions and classes together in an actual flow. Note how the number of jobs in <code class="docutils literal notranslate"><span class="pre">get_ev_curve</span></code> can be flexibly controlled by using <code class="docutils literal notranslate"><span class="pre">strain_lst</span></code> and therefore we use <code class="docutils literal notranslate"><span class="pre">Response</span></code> to handle the job output. By making <code class="docutils literal notranslate"><span class="pre">get_ev_curve</span></code> and <code class="docutils literal notranslate"><span class="pre">plot_energy_volume_curve_job</span></code> into <code class="docutils literal notranslate"><span class="pre">job</span></code> objects using the <code class="docutils literal notranslate"><span class="pre">&#64;job</span></code> decorator, we ensure that first all the (E, V) data points are calculated before they are plotted. The <code class="docutils literal notranslate"><span class="pre">qe_flow</span></code> contains the list of the jobs that need to be executed in this workflow. The jobs are connected by the respective <code class="docutils literal notranslate"><span class="pre">job.output</span></code> objects that also ensures the correct order in executing the jobs.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">jobflow</span> <span class="kn">import</span> <span class="n">job</span><span class="p">,</span> <span class="n">Response</span><span class="p">,</span> <span class="n">Flow</span><span class="p">,</span> <span class="n">run_locally</span>
 
-
-
-<span class="kn">from</span> <span class="nn">jobflow</span> <span class="kn">import</span> <span class="n">job</span><span class="p">,</span> <span class="n">Response</span><span class="p">,</span> <span class="n">Flow</span><span class="p">,</span> <span class="n">run_locally</span>
+<span class="c1"># set up QE PP env</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;ESPRESSO_PSEUDO&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span><span class="si">}</span><span class="s2">/espresso/pseudo&quot;</span>
 
 <span class="nd">@job</span>
 <span class="k">def</span> <span class="nf">get_ev_curve</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">strain_lst</span><span class="p">):</span>
@@ -622,92 +747,118 @@ document.write(`
 
 <span class="n">structure</span> <span class="o">=</span> <span class="n">bulk</span><span class="p">(</span><span class="s1">&#39;Al&#39;</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mf">4.15</span><span class="p">,</span> <span class="n">cubic</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">relax</span> <span class="o">=</span> <span class="n">BaseQEMaker</span><span class="p">()</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">MSONAtoms</span><span class="p">(</span><span class="n">structure</span><span class="p">))</span>
-<span class="n">ev_curve</span> <span class="o">=</span> <span class="n">get_ev_curve</span><span class="p">(</span><span class="n">relax</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">strain_lst</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
-<span class="n">plot</span> <span class="o">=</span> <span class="n">plot_energy_volume_curve_job</span><span class="p">(</span><span class="n">volume_lst</span><span class="o">=</span><span class="n">ev_curve</span><span class="o">.</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;volumes&quot;</span><span class="p">],</span> <span class="n">energy_lst</span><span class="o">=</span><span class="n">ev_curve</span><span class="o">.</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;energies&quot;</span><span class="p">])</span>
-<span class="n">jobs</span> <span class="o">=</span> <span class="p">[</span><span class="n">relax</span><span class="p">,</span> <span class="n">ev_curve</span><span class="p">,</span> <span class="n">plot</span><span class="p">]</span>
-<span class="n">run_locally</span><span class="p">(</span><span class="n">Flow</span><span class="p">(</span><span class="n">jobs</span><span class="p">),</span> <span class="n">create_folders</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">ev_curve_data</span> <span class="o">=</span> <span class="n">get_ev_curve</span><span class="p">(</span><span class="n">relax</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">strain_lst</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="c1"># structure optimization job and (E, V) curve data job connected via relax.output</span>
+<span class="n">plot_curve</span> <span class="o">=</span> <span class="n">plot_energy_volume_curve_job</span><span class="p">(</span><span class="n">volume_lst</span><span class="o">=</span><span class="n">ev_curve_data</span><span class="o">.</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;volumes&quot;</span><span class="p">],</span> <span class="n">energy_lst</span><span class="o">=</span><span class="n">ev_curve_data</span><span class="o">.</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;energies&quot;</span><span class="p">])</span>
+<span class="c1"># (E, V) curve data job and plotting the curve job connected via ev_curve_data.output</span>
+<span class="n">qe_flow</span> <span class="o">=</span> <span class="p">[</span><span class="n">relax</span><span class="p">,</span> <span class="n">ev_curve_data</span><span class="p">,</span> <span class="n">plot_curve</span><span class="p">]</span>  
+<span class="n">qe_fw</span> <span class="o">=</span> <span class="n">Flow</span><span class="p">(</span><span class="n">qe_flow</span><span class="p">)</span>
+<span class="c1"># qe_flow is the QE flow that consists of the job for structural optimization, calculating the (E, V) curve data points and plotting the curve</span>
+<span class="n">run_locally</span><span class="p">(</span><span class="n">qe_fw</span><span class="p">,</span> <span class="n">create_folders</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># order of the jobs in the flow is determined by connectivity</span>
+
+<span class="n">graph</span> <span class="o">=</span> <span class="n">to_mermaid</span><span class="p">(</span><span class="n">qe_fw</span><span class="p">,</span> <span class="n">show_flow_boxes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">mm</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-04-04 15:55:32,815 INFO Started executing jobs locally
-2024-04-04 15:55:32,892 INFO Starting job - base qe job (72ab2547-8a66-4dd0-a95a-b6255a668cd8)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-06-30 23:49:02,706 INFO Started executing jobs locally
+2024-06-30 23:49:02,710 INFO Starting job - base qe job (6883bfe0-2b20-49de-92df-c166d6f91dbc)
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[jupyter-jan-2djanssen-2dqua-2dsso-5fpyiron-5fbase-2d4ksucf2d:00139] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)
-Note: The following floating-point exceptions are signalling: IEEE_INVALID_FLAG
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Authorization required, but no authorization protocol specified
+Authorization required, but no authorization protocol specified
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-04-04 15:56:37,395 INFO Finished job - base qe job (72ab2547-8a66-4dd0-a95a-b6255a668cd8)
-2024-04-04 15:56:37,396 INFO Starting job - get_ev_curve (87ad6b9b-9f34-463e-b705-1ab7cdcf9aee)
-2024-04-04 15:56:37,404 INFO Finished job - get_ev_curve (87ad6b9b-9f34-463e-b705-1ab7cdcf9aee)
-2024-04-04 15:56:37,406 INFO Starting job - static qe job (b0759785-155b-4e79-9b72-c626067d81e1)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-06-30 23:49:32,255 INFO Finished job - base qe job (6883bfe0-2b20-49de-92df-c166d6f91dbc)
+2024-06-30 23:49:32,256 INFO Starting job - get_ev_curve (dfc9a5cd-fb91-4582-b6c6-c42b4c65cb83)
+2024-06-30 23:49:32,268 INFO Finished job - get_ev_curve (dfc9a5cd-fb91-4582-b6c6-c42b4c65cb83)
+2024-06-30 23:49:32,271 INFO Starting job - static qe job (0a57429a-2360-4293-8f2a-5323a1173570)
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[jupyter-jan-2djanssen-2dqua-2dsso-5fpyiron-5fbase-2d4ksucf2d:00149] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Authorization required, but no authorization protocol specified
+Authorization required, but no authorization protocol specified
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-04-04 15:56:45,563 INFO Finished job - static qe job (b0759785-155b-4e79-9b72-c626067d81e1)
-2024-04-04 15:56:45,564 INFO Starting job - static qe job (514079e9-d6ae-4369-8b80-bf8ca7860540)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-06-30 23:49:35,977 INFO Finished job - static qe job (0a57429a-2360-4293-8f2a-5323a1173570)
+2024-06-30 23:49:35,979 INFO Starting job - static qe job (71996726-fb51-4a1f-8585-373a470bd16c)
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Note: The following floating-point exceptions are signalling: IEEE_INVALID_FLAG
-[jupyter-jan-2djanssen-2dqua-2dsso-5fpyiron-5fbase-2d4ksucf2d:00159] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)
-Note: The following floating-point exceptions are signalling: IEEE_INVALID_FLAG
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Authorization required, but no authorization protocol specified
+Authorization required, but no authorization protocol specified
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-04-04 15:56:53,979 INFO Finished job - static qe job (514079e9-d6ae-4369-8b80-bf8ca7860540)
-2024-04-04 15:56:53,980 INFO Starting job - static qe job (6e3c5a28-4edb-4244-9e35-0b8733b946c4)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-06-30 23:49:39,977 INFO Finished job - static qe job (71996726-fb51-4a1f-8585-373a470bd16c)
+2024-06-30 23:49:39,982 INFO Starting job - static qe job (2cf7b6c9-1f19-4b2f-b85f-df201d546c26)
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[jupyter-jan-2djanssen-2dqua-2dsso-5fpyiron-5fbase-2d4ksucf2d:00169] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Authorization required, but no authorization protocol specified
+Authorization required, but no authorization protocol specified
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-04-04 15:57:03,600 INFO Finished job - static qe job (6e3c5a28-4edb-4244-9e35-0b8733b946c4)
-2024-04-04 15:57:03,600 INFO Starting job - static qe job (980b72a5-fbea-445c-9075-a880322c8261)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-06-30 23:49:44,274 INFO Finished job - static qe job (2cf7b6c9-1f19-4b2f-b85f-df201d546c26)
+2024-06-30 23:49:44,275 INFO Starting job - static qe job (a04f788d-9bc1-4453-9897-5d0b4e9321d3)
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Note: The following floating-point exceptions are signalling: IEEE_INVALID_FLAG
-[jupyter-jan-2djanssen-2dqua-2dsso-5fpyiron-5fbase-2d4ksucf2d:00179] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Authorization required, but no authorization protocol specified
+Authorization required, but no authorization protocol specified
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-04-04 15:57:14,907 INFO Finished job - static qe job (980b72a5-fbea-445c-9075-a880322c8261)
-2024-04-04 15:57:14,908 INFO Starting job - static qe job (a44a935f-6bd2-4279-bbcb-53d5ed890a99)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-06-30 23:49:49,249 INFO Finished job - static qe job (a04f788d-9bc1-4453-9897-5d0b4e9321d3)
+2024-06-30 23:49:49,254 INFO Starting job - static qe job (0ed3d090-bd30-49da-96ed-143b8e7f5b4a)
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Note: The following floating-point exceptions are signalling: IEEE_INVALID_FLAG
-[jupyter-jan-2djanssen-2dqua-2dsso-5fpyiron-5fbase-2d4ksucf2d:00189] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)
-Note: The following floating-point exceptions are signalling: IEEE_INVALID_FLAG
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Authorization required, but no authorization protocol specified
+Authorization required, but no authorization protocol specified
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-04-04 15:57:27,174 INFO Finished job - static qe job (a44a935f-6bd2-4279-bbcb-53d5ed890a99)
-2024-04-04 15:57:27,174 INFO Starting job - store_inputs (87ad6b9b-9f34-463e-b705-1ab7cdcf9aee, 2)
-2024-04-04 15:57:27,176 INFO Finished job - store_inputs (87ad6b9b-9f34-463e-b705-1ab7cdcf9aee, 2)
-2024-04-04 15:57:27,176 INFO Starting job - plot_energy_volume_curve_job (9987ab9f-1ae9-4172-8e31-b2c9920d4791)
-2024-04-04 15:57:27,256 INFO Finished job - plot_energy_volume_curve_job (9987ab9f-1ae9-4172-8e31-b2c9920d4791)
-2024-04-04 15:57:27,256 INFO Finished executing jobs locally
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-06-30 23:49:54,070 INFO Finished job - static qe job (0ed3d090-bd30-49da-96ed-143b8e7f5b4a)
+2024-06-30 23:49:54,071 INFO Starting job - store_inputs (dfc9a5cd-fb91-4582-b6c6-c42b4c65cb83, 2)
+2024-06-30 23:49:54,073 INFO Finished job - store_inputs (dfc9a5cd-fb91-4582-b6c6-c42b4c65cb83, 2)
+2024-06-30 23:49:54,074 INFO Starting job - plot_energy_volume_curve_job (92d14a25-bb90-4c86-b970-af05db90550e)
+2024-06-30 23:49:54,163 INFO Finished job - plot_energy_volume_curve_job (92d14a25-bb90-4c86-b970-af05db90550e)
+2024-06-30 23:49:54,173 INFO Finished executing jobs locally
 </pre></div>
 </div>
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;72ab2547-8a66-4dd0-a95a-b6255a668cd8&#39;: {1: Response(output=QETaskDoc(structure=MSONAtoms(symbols=&#39;Al4&#39;, pbc=True, cell=[4.045218941837687, 4.045218941837687, 4.045218941837687]), energy=-1074.9365272693506, volume=66.1951387021735), detour=None, addition=None, replace=None, stored_data=None, stop_children=False, stop_jobflow=False)},
- &#39;87ad6b9b-9f34-463e-b705-1ab7cdcf9aee&#39;: {1: Response(output=None, detour=None, addition=None, replace=Flow(name=&#39;Flow&#39;, uuid=&#39;0e46d480-7699-4e03-889b-b4ba65fe3d38&#39;)
-  1. Job(name=&#39;static qe job&#39;, uuid=&#39;b0759785-155b-4e79-9b72-c626067d81e1&#39;)
-  2. Job(name=&#39;static qe job&#39;, uuid=&#39;514079e9-d6ae-4369-8b80-bf8ca7860540&#39;)
-  3. Job(name=&#39;static qe job&#39;, uuid=&#39;6e3c5a28-4edb-4244-9e35-0b8733b946c4&#39;)
-  4. Job(name=&#39;static qe job&#39;, uuid=&#39;980b72a5-fbea-445c-9075-a880322c8261&#39;)
-  5. Job(name=&#39;static qe job&#39;, uuid=&#39;a44a935f-6bd2-4279-bbcb-53d5ed890a99&#39;)
-  6. Job(name=&#39;store_inputs&#39;, uuid=&#39;87ad6b9b-9f34-463e-b705-1ab7cdcf9aee&#39;), stored_data=None, stop_children=False, stop_jobflow=False),
-  2: Response(output={&#39;energies&#39;: [OutputReference(b0759785-155b-4e79-9b72-c626067d81e1, .energy), OutputReference(514079e9-d6ae-4369-8b80-bf8ca7860540, .energy), OutputReference(6e3c5a28-4edb-4244-9e35-0b8733b946c4, .energy), OutputReference(980b72a5-fbea-445c-9075-a880322c8261, .energy), OutputReference(a44a935f-6bd2-4279-bbcb-53d5ed890a99, .energy)], &#39;volumes&#39;: [OutputReference(b0759785-155b-4e79-9b72-c626067d81e1, .volume), OutputReference(514079e9-d6ae-4369-8b80-bf8ca7860540, .volume), OutputReference(6e3c5a28-4edb-4244-9e35-0b8733b946c4, .volume), OutputReference(980b72a5-fbea-445c-9075-a880322c8261, .volume), OutputReference(a44a935f-6bd2-4279-bbcb-53d5ed890a99, .volume)]}, detour=None, addition=None, replace=None, stored_data=None, stop_children=False, stop_jobflow=False)},
- &#39;b0759785-155b-4e79-9b72-c626067d81e1&#39;: {1: Response(output=QETaskDoc(structure=MSONAtoms(symbols=&#39;Al4&#39;, pbc=True, cell=[3.9056159296787105, 3.9056159296787105, 3.9056159296787105]), energy=-1074.8451830762128, volume=59.575624050752516), detour=None, addition=None, replace=None, stored_data=None, stop_children=False, stop_jobflow=False)},
- &#39;514079e9-d6ae-4369-8b80-bf8ca7860540&#39;: {1: Response(output=QETaskDoc(structure=MSONAtoms(symbols=&#39;Al4&#39;, pbc=True, cell=[3.9766426435887574, 3.9766426435887574, 3.9766426435887574]), energy=-1074.9158947387848, volume=62.88538094246082), detour=None, addition=None, replace=None, stored_data=None, stop_children=False, stop_jobflow=False)},
- &#39;6e3c5a28-4edb-4244-9e35-0b8733b946c4&#39;: {1: Response(output=QETaskDoc(structure=MSONAtoms(symbols=&#39;Al4&#39;, pbc=True, cell=[4.045218924156295, 4.045218924156295, 4.045218924156295]), energy=-1074.936525208987, volume=66.19513783416937), detour=None, addition=None, replace=None, stored_data=None, stop_children=False, stop_jobflow=False)},
- &#39;980b72a5-fbea-445c-9075-a880322c8261&#39;: {1: Response(output=QETaskDoc(structure=MSONAtoms(symbols=&#39;Al4&#39;, pbc=True, cell=[4.111545777030954, 4.111545777030954, 4.111545777030954]), energy=-1074.9194989203452, volume=69.50489472587755), detour=None, addition=None, replace=None, stored_data=None, stop_children=False, stop_jobflow=False)},
- &#39;a44a935f-6bd2-4279-bbcb-53d5ed890a99&#39;: {1: Response(output=QETaskDoc(structure=MSONAtoms(symbols=&#39;Al4&#39;, pbc=True, cell=[4.175799058074337, 4.175799058074337, 4.175799058074337]), energy=-1074.8741797823543, volume=72.81465161758611), detour=None, addition=None, replace=None, stored_data=None, stop_children=False, stop_jobflow=False)},
- &#39;9987ab9f-1ae9-4172-8e31-b2c9920d4791&#39;: {1: Response(output=None, detour=None, addition=None, replace=None, stored_data=None, stop_children=False, stop_jobflow=False)}}
+<div class="output text_html"><img src="https://mermaid.ink/img/Zmxvd2NoYXJ0IFRECiAgICA2ODgzYmZlMC0yYjIwLTQ5ZGUtOTJkZi1jMTY2ZDZmOTFkYmMoYmFzZSBxZSBqb2IpCiAgICBkZmM5YTVjZC1mYjkxLTQ1ODItYjZjNi1jNDJiNGM2NWNiODMoZ2V0X2V2X2N1cnZlKQogICAgOTJkMTRhMjUtYmI5MC00Yzg2LWI5NzAtYWYwNWRiOTA1NTBlKHBsb3RfZW5lcmd5X3ZvbHVtZV9jdXJ2ZV9qb2Ip"/></div><img alt="_images/b4ed0b6f9d109fbde2914b3d5ea1e9b94c53c9a407f25f17f76c7d28fca5cb06.png" src="_images/b4ed0b6f9d109fbde2914b3d5ea1e9b94c53c9a407f25f17f76c7d28fca5cb06.png" />
+</div>
+</div>
+<p>And with using the <code class="docutils literal notranslate"><span class="pre">job.output</span></code> connectivity, the mermaid graph looks like:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mm</span><span class="p">(</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">flowchart TD</span>
+<span class="sd">    6883bfe0-2b20-49de-92df-c166d6f91dbc(base qe job) --&gt; |output.structure| dfc9a5cd-fb91-4582-b6c6-c42b4c65cb83(get_ev_curve)</span>
+<span class="sd">    dfc9a5cd-fb91-4582-b6c6-c42b4c65cb83(get_ev_curve) --&gt; |&#39;volumes&#39;, &#39;energies&#39;| 92d14a25-bb90-4c86-b970-af05db90550e(plot_energy_volume_curve_job)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="p">)</span>
 </pre></div>
 </div>
-<img alt="_images/a9c6f3fabc32b1c77155a24ddd0a679074efc4832763b26ae31d5579611b7448.png" src="_images/a9c6f3fabc32b1c77155a24ddd0a679074efc4832763b26ae31d5579611b7448.png" />
 </div>
+<div class="cell_output docutils container">
+<div class="output text_html"><img src="https://mermaid.ink/img/CmZsb3djaGFydCBURAogICAgNjg4M2JmZTAtMmIyMC00OWRlLTkyZGYtYzE2NmQ2ZjkxZGJjKGJhc2UgcWUgam9iKSAtLT4gfG91dHB1dC5zdHJ1Y3R1cmV8IGRmYzlhNWNkLWZiOTEtNDU4Mi1iNmM2LWM0MmI0YzY1Y2I4MyhnZXRfZXZfY3VydmUpCiAgICBkZmM5YTVjZC1mYjkxLTQ1ODItYjZjNi1jNDJiNGM2NWNiODMoZ2V0X2V2X2N1cnZlKSAtLT4gfCd2b2x1bWVzJywgJ2VuZXJnaWVzJ3wgOTJkMTRhMjUtYmI5MC00Yzg2LWI5NzAtYWYwNWRiOTA1NTBlKHBsb3RfZW5lcmd5X3ZvbHVtZV9jdXJ2ZV9qb2IpCg=="/></div></div>
 </div>
+</section>
+<section id="submission-to-an-hpc-check-pointing-error-handling">
+<h2>Submission to an HPC / Check pointing / Error handling<a class="headerlink" href="#submission-to-an-hpc-check-pointing-error-handling" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Use the <code class="docutils literal notranslate"><span class="pre">jobflow</span></code> command <code class="docutils literal notranslate"><span class="pre">run_locally</span></code> to run jobs in serial with a simple job script</p></li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">fireworks</span></code> and <code class="docutils literal notranslate"><span class="pre">jobflow-remote</span></code> to simplify and parallelize the submission of jobs, and allows for checkpointing</p></li>
+<li><p>Use <a class="reference external" href="http://materialsproject.github.io/custodian/"><code class="docutils literal notranslate"><span class="pre">custodian</span></code></a> error handling (not directly handled by <code class="docutils literal notranslate"><span class="pre">jobflow</span></code>), e.g. like in <code class="docutils literal notranslate"><span class="pre">atomate2</span></code></p></li>
+</ul>
+</section>
+<section id="data-storage-data-sharing">
+<h2>Data Storage / Data Sharing<a class="headerlink" href="#data-storage-data-sharing" title="Link to this heading">#</a></h2>
+<p>Key data can be saved in a dedicated MongoDB-like database. This data can be validated with the help of
+<code class="docutils literal notranslate"><span class="pre">pydantic</span></code>. The latter also allows a direct connection to Fast-API. The Materials Project data generation
+relies on similar features. Direct calculation outputs will be saved on the compute machine.
+There are no dedicated mechanisms to save whole projects, but the database can be used to achieve this.</p>
+</section>
+<section id="publication-of-the-workflow">
+<h2>Publication of the workflow<a class="headerlink" href="#publication-of-the-workflow" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">jobflow</span></code> infrastructure does not provide a dedicated platform for publishing a workflow currently. However, workflows related to computational materials science have been collected in the package <code class="docutils literal notranslate"><span class="pre">atomate2</span></code>. In addition, users can build their own package by relying on jobflow and share it as any Python project.</p>
+</section>
 </section>
 
     <script type="text/x-thebe-config">
@@ -764,6 +915,25 @@ Note: The following floating-point exceptions are signalling: IEEE_INVALID_FLAG
             </div>
             
             
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation-setup">Installation / Setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#basic-introduction-to-jobflow-concepts">Basic introduction to <code class="docutils literal notranslate"><span class="pre">jobflow</span></code> concepts</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submission-to-an-hpc-check-pointing-error-handling">Submission to an HPC / Check pointing / Error handling</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-storage-data-sharing">Data Storage / Data Sharing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#publication-of-the-workflow">Publication of the workflow</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>
