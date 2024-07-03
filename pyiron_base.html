@@ -460,7 +460,7 @@ document.write(`
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">workflow</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">pseudopotentials</span><span class="p">):</span> 
     <span class="c1"># Structure optimization </span>
-    <span class="n">job_qe_minimize</span> <span class="o">=</span> <span class="n">pr</span><span class="o">.</span><span class="n">wrap_executable</span><span class="p">(</span>
+    <span class="n">job_qe_minimize</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">wrap_executable</span><span class="p">(</span>
         <span class="n">job_name</span><span class="o">=</span><span class="s2">&quot;job_qe_minimize&quot;</span><span class="p">,</span>
         <span class="n">write_input_funct</span><span class="o">=</span><span class="n">write_input</span><span class="p">,</span>
         <span class="n">collect_output_funct</span><span class="o">=</span><span class="n">collect_output</span><span class="p">,</span>
@@ -476,7 +476,7 @@ document.write(`
     <span class="p">)</span>
 
     <span class="c1"># Generate Structures</span>
-    <span class="n">structure_lst</span> <span class="o">=</span> <span class="n">pr</span><span class="o">.</span><span class="n">wrap_python_function</span><span class="p">(</span><span class="n">generate_structures</span><span class="p">)(</span>
+    <span class="n">structure_lst</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">wrap_python_function</span><span class="p">(</span><span class="n">generate_structures</span><span class="p">)(</span>
         <span class="n">structure</span><span class="o">=</span><span class="n">job_qe_minimize</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> 
         <span class="n">strain_lst</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
     <span class="p">)</span>
@@ -484,7 +484,7 @@ document.write(`
     <span class="c1"># Energy Volume Curve </span>
     <span class="n">energy_lst</span><span class="p">,</span> <span class="n">volume_lst</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">structure_strain</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">structure_lst</span><span class="p">):</span>
-        <span class="n">job_strain</span> <span class="o">=</span> <span class="n">pr</span><span class="o">.</span><span class="n">wrap_executable</span><span class="p">(</span>
+        <span class="n">job_strain</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">wrap_executable</span><span class="p">(</span>
             <span class="n">job_name</span><span class="o">=</span><span class="s2">&quot;job_strain_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span>
             <span class="n">write_input_funct</span><span class="o">=</span><span class="n">write_input</span><span class="p">,</span>
             <span class="n">collect_output_funct</span><span class="o">=</span><span class="n">collect_output</span><span class="p">,</span>
