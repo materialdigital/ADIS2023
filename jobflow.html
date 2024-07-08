@@ -368,6 +368,7 @@ document.write(`
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation-setup">Installation / Setup</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#basic-introduction-to-jobflow-concepts">Basic introduction to <code class="docutils literal notranslate"><span class="pre">jobflow</span></code> concepts</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implementation-of-quantum-espresso-workflow">Implementation of Quantum Espresso Workflow</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submission-to-an-hpc-check-pointing-error-handling">Submission to an HPC / Check pointing / Error handling</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-storage-data-sharing">Data Storage / Data Sharing</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#publication-of-the-workflow">Publication of the workflow</a></li>
@@ -384,37 +385,46 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="jobflow">
 <h1>jobflow<a class="headerlink" href="#jobflow" title="Link to this heading">#</a></h1>
-<p>The Python package <a class="reference external" href="https://materialsproject.github.io/jobflow/index.html"><code class="docutils literal notranslate"><span class="pre">jobflow</span></code></a> was developed in the context of the <a class="reference external" href="https://next-gen.materialsproject.org/">Materials Project</a> and its overall flexibility allows for building workflows that go beyond the usage in material science. <code class="docutils literal notranslate"><span class="pre">jobflow</span></code> forms the basis of <a class="reference external" href="https://materialsproject.github.io/atomate2/index.html"><code class="docutils literal notranslate"><span class="pre">atomate2</span></code></a>, a software package for data generation workflows. <code class="docutils literal notranslate"><span class="pre">jobflow</span></code> and <code class="docutils literal notranslate"><span class="pre">atomate2</span></code> are key packages of the Materials Project. <code class="docutils literal notranslate"><span class="pre">jobflow</span></code> was especially designed to simplify the execution of dynamic workflows – when the actual number of jobs is dynamically determined upon runtime instead of being statically fixed before running the workflow(s).</p>
+<p><a class="reference external" href="https://materialsproject.github.io/jobflow/index.html"><code class="docutils literal notranslate"><span class="pre">jobflow</span></code></a> and <a class="reference external" href="https://materialsproject.github.io/atomate2/index.html"><code class="docutils literal notranslate"><span class="pre">atomate2</span></code></a> are key packages of the <a class="reference external" href="https://materialsproject.org/">Materials Project</a> . <code class="docutils literal notranslate"><span class="pre">jobflow</span></code> was especially designed to simplify the execution of dynamic workflows – when the actual number of jobs is dynamically determined upon runtime instead of being statically fixed before running the workflow(s). <code class="docutils literal notranslate"><span class="pre">jobflow</span></code>’s overall flexibility allows for building workflows that go beyond the usage in materials science. <code class="docutils literal notranslate"><span class="pre">jobflow</span></code> serves as the basis of <code class="docutils literal notranslate"><span class="pre">atomate2</span></code>, which implements data generation workflows in the context of materials science and will be used for data generation in the Materials Project in the future.</p>
 <section id="installation-setup">
 <h2>Installation / Setup<a class="headerlink" href="#installation-setup" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">jobflow</span></code> can be installed via ‘pip install’ and be run with the default setup. It will then internally rely on a predefined  memory database as defined in the software package <a class="reference external" href="https://materialsproject.github.io/maggma/"><code class="docutils literal notranslate"><span class="pre">maggma</span></code></a>. For large-scale usage, a <a class="reference external" href="https://www.mongodb.com/">MongoDB</a>-like database might be specified for each project in a jobflow.yaml file.
-A high-throughput setup (i.e., parallel execution of independent parts in the workflow) of <code class="docutils literal notranslate"><span class="pre">jobflow</span></code> can be achieved using additional packages like <a class="reference external" href="https://materialsproject.github.io/fireworks/"><code class="docutils literal notranslate"><span class="pre">fireworks</span></code></a> or <a class="reference external" href="https://matgenix.github.io/jobflow-remote/"><code class="docutils literal notranslate"><span class="pre">jobflow-remote</span></code></a>. Both packages require a MongoDB database. In case of <code class="docutils literal notranslate"><span class="pre">FireWorks</span></code>, however, the MongoDB database needs to be connected to the compute nodes. <code class="docutils literal notranslate"><span class="pre">jobflow-remote</span></code> allows remote submission options that only require a MongoDB database on the submitting computer but not the compute nodes. It can also deal with multi-factor authentification.</p>
+<p><code class="docutils literal notranslate"><span class="pre">jobflow</span></code> can be installed via <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span></code> and directly run with the default setup. It will then internally rely on a memory database as defined in the software package <a class="reference external" href="https://materialsproject.github.io/maggma/"><code class="docutils literal notranslate"><span class="pre">maggma</span></code></a>. For large-scale usage, a <a class="reference external" href="https://www.mongodb.com/">MongoDB</a>-like database might be specified in a jobflow.yaml file.
+A high-throughput setup (i.e., parallel execution of independent parts in the workflow) of <code class="docutils literal notranslate"><span class="pre">jobflow</span></code> can be achieved using additional packages like <a class="reference external" href="https://materialsproject.github.io/fireworks/"><code class="docutils literal notranslate"><span class="pre">fireworks</span></code></a> or <a class="reference external" href="https://matgenix.github.io/jobflow-remote/"><code class="docutils literal notranslate"><span class="pre">jobflow-remote</span></code></a>. Both packages require a MongoDB database. In case of <code class="docutils literal notranslate"><span class="pre">FireWorks</span></code>, however, the MongoDB database needs to be directly connected to the compute nodes. <code class="docutils literal notranslate"><span class="pre">jobflow-remote</span></code> allows remote submission options that only require a MongoDB database on the submitting computer but not the compute nodes. It can also deal with multi-factor authentication.</p>
 </section>
 <section id="basic-introduction-to-jobflow-concepts">
 <h2>Basic introduction to <code class="docutils literal notranslate"><span class="pre">jobflow</span></code> concepts<a class="headerlink" href="#basic-introduction-to-jobflow-concepts" title="Link to this heading">#</a></h2>
 <p>Before diving into the simulation code and more details, we need to discuss the core concepts of <code class="docutils literal notranslate"><span class="pre">jobflow</span></code> (written in Python). It defines <code class="docutils literal notranslate"><span class="pre">job</span></code> and <code class="docutils literal notranslate"><span class="pre">Flow</span></code> objects to handle the correct sequential execution of a workflow. A <code class="docutils literal notranslate"><span class="pre">job</span></code> is a class that allows for the delayed execution of a function. Functions can be easily transformed into a <code class="docutils literal notranslate"><span class="pre">job</span></code> with the <code class="docutils literal notranslate"><span class="pre">&#64;job</span></code> decorator, as demonstrated here with a test function:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">jobflow</span> <span class="kn">import</span> <span class="n">job</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span> <span class="nn">jobflow</span> <span class="kn">import</span> <span class="n">job</span>
+
+
 <span class="nd">@job</span>
-<span class="k">def</span> <span class="nf">my_function</span><span class="p">(</span><span class="n">my_parameter</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">my_function</span><span class="p">(</span><span class="n">my_parameter</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">my_parameter</span>
+
 
 <span class="n">job1</span> <span class="o">=</span> <span class="n">my_function</span><span class="p">(</span><span class="n">my_parameter</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
-<p>When we connect several <code class="docutils literal notranslate"><span class="pre">jobs</span></code> to generate a <code class="docutils literal notranslate"><span class="pre">Flow</span></code> object, we can construct a whole workflow. The list of connected <code class="docutils literal notranslate"><span class="pre">jobs</span></code> has to be passed to initialize a <code class="docutils literal notranslate"><span class="pre">Flow</span></code>. The order of the <code class="docutils literal notranslate"><span class="pre">jobs</span></code> is automatically determined by the job connectivity via the <code class="docutils literal notranslate"><span class="pre">job.output</span></code> upon runtime. We can also connect several <code class="docutils literal notranslate"><span class="pre">jobs</span></code> and <code class="docutils literal notranslate"><span class="pre">Flows</span></code> to create a new <code class="docutils literal notranslate"><span class="pre">Flow</span></code>.</p>
+<p>When we connect several <code class="docutils literal notranslate"><span class="pre">job</span></code>s to generate a <code class="docutils literal notranslate"><span class="pre">Flow</span></code> object, we can construct a whole workflow. The list of connected <code class="docutils literal notranslate"><span class="pre">jobs</span></code> has to be passed to initialize a <code class="docutils literal notranslate"><span class="pre">Flow</span></code>. The order of the <code class="docutils literal notranslate"><span class="pre">jobs</span></code> is automatically determined by the job connectivity via the <code class="docutils literal notranslate"><span class="pre">job.output</span></code> upon runtime. We can also connect several <code class="docutils literal notranslate"><span class="pre">job</span></code>s and <code class="docutils literal notranslate"><span class="pre">Flows</span></code> to create a new <code class="docutils literal notranslate"><span class="pre">Flow</span></code>.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">jobflow</span> <span class="kn">import</span> <span class="n">job</span><span class="p">,</span> <span class="n">Flow</span>
+
+
 <span class="nd">@job</span>
-<span class="k">def</span> <span class="nf">my_function</span><span class="p">(</span><span class="n">my_parameter</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">my_function</span><span class="p">(</span><span class="n">my_parameter</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">my_parameter</span>
+
+
 <span class="nd">@job</span>
-<span class="k">def</span> <span class="nf">my_second_function</span><span class="p">(</span><span class="n">my_parameter</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">my_second_function</span><span class="p">(</span><span class="n">my_parameter</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">my_parameter</span>
+
 
 <span class="n">job1</span> <span class="o">=</span> <span class="n">my_function</span><span class="p">(</span><span class="n">my_parameter</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">job2</span> <span class="o">=</span> <span class="n">my_second_function</span><span class="p">(</span><span class="n">job1</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
@@ -430,11 +440,13 @@ A high-throughput setup (i.e., parallel execution of independent parts in the wo
 <span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">display</span>
 <span class="kn">from</span> <span class="nn">jobflow.utils.graph</span> <span class="kn">import</span> <span class="n">to_mermaid</span>
 
+
 <span class="k">def</span> <span class="nf">mm</span><span class="p">(</span><span class="n">graph</span><span class="p">):</span>
     <span class="n">graphbytes</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span>
     <span class="n">base64_bytes</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">graphbytes</span><span class="p">)</span>
     <span class="n">base64_string</span> <span class="o">=</span> <span class="n">base64_bytes</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span>
     <span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="s2">&quot;https://mermaid.ink/img/&quot;</span> <span class="o">+</span> <span class="n">base64_string</span><span class="p">))</span>
+
 
 <span class="n">graph_source</span> <span class="o">=</span> <span class="n">to_mermaid</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="n">show_flow_boxes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
@@ -443,38 +455,45 @@ A high-throughput setup (i.e., parallel execution of independent parts in the wo
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_html"><img src="https://mermaid.ink/img/Zmxvd2NoYXJ0IFRECiAgICAyOTQwZDdkYS1iMWUyLTQ2M2UtYTY0Mi01ZWJiYjQwZWJiNWMobXlfZnVuY3Rpb24pIC0tPnxvdXRwdXR8IGJhNjA2N2IzLWM1MjktNDhmOS04NjhkLWFhM2I1MzI3MmVlZChteV9zZWNvbmRfZnVuY3Rpb24pCiAgICAyOTQwZDdkYS1iMWUyLTQ2M2UtYTY0Mi01ZWJiYjQwZWJiNWMobXlfZnVuY3Rpb24pCiAgICBiYTYwNjdiMy1jNTI5LTQ4ZjktODY4ZC1hYTNiNTMyNzJlZWQobXlfc2Vjb25kX2Z1bmN0aW9uKQ=="/></div></div>
+<div class="output text_html"><img src="https://mermaid.ink/img/Zmxvd2NoYXJ0IFRECiAgICBhMzU0MTg2OC1kNGQ3LTQ4MDktOTFhMS02NWE5NmM1YmFjMzMobXlfZnVuY3Rpb24pIC0tPnxvdXRwdXR8IDZiYTNiYjhlLTVjNWEtNDA5Ni04NGE5LWZjMGNhNjE0ZmFkMihteV9zZWNvbmRfZnVuY3Rpb24pCiAgICBhMzU0MTg2OC1kNGQ3LTQ4MDktOTFhMS02NWE5NmM1YmFjMzMobXlfZnVuY3Rpb24pCiAgICA2YmEzYmI4ZS01YzVhLTQwOTYtODRhOS1mYzBjYTYxNGZhZDIobXlfc2Vjb25kX2Z1bmN0aW9uKQ=="/></div></div>
 </div>
-<p>With a so-called <code class="docutils literal notranslate"><span class="pre">Maker</span></code> object, the implementation of <code class="docutils literal notranslate"><span class="pre">job</span></code> and <code class="docutils literal notranslate"><span class="pre">Flow</span></code> objects can be further simplified. It is an extended dataclass object that generates a <code class="docutils literal notranslate"><span class="pre">job</span></code> or <code class="docutils literal notranslate"><span class="pre">Flow</span></code> with the <code class="docutils literal notranslate"><span class="pre">make</span></code> method. Dataclasses are used as they allow defining immutable default values. These <code class="docutils literal notranslate"><span class="pre">Makers</span></code> can then be used to reuse code via the usual inheritance in Python.</p>
+<p>With a so-called <code class="docutils literal notranslate"><span class="pre">Maker</span></code> object, the implementation of <code class="docutils literal notranslate"><span class="pre">job</span></code> and <code class="docutils literal notranslate"><span class="pre">Flow</span></code> objects can be further simplified. It is an extended dataclass object that generates a <code class="docutils literal notranslate"><span class="pre">job</span></code> or <code class="docutils literal notranslate"><span class="pre">Flow</span></code> with the <code class="docutils literal notranslate"><span class="pre">make</span></code> method. Dataclasses are used as they allow defining immutable default values and simplify initialisation of attributes. These <code class="docutils literal notranslate"><span class="pre">Makers</span></code> can then be used to reuse code via the usual inheritance in Python.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">jobflow</span> <span class="kn">import</span> <span class="n">Maker</span>
+
+
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">MyMaker</span><span class="p">(</span><span class="n">Maker</span><span class="p">):</span>
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;My Maker&quot;</span>
     <span class="n">scaling</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.1</span>
 
     <span class="nd">@job</span>
-    <span class="k">def</span> <span class="nf">make</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">my_parameter</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">make</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">my_parameter</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">my_parameter</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">scaling</span>
-    
+
+
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">MyInheritedMaker</span><span class="p">(</span><span class="n">MyMaker</span><span class="p">):</span>
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;My inherited Maker&quot;</span>
 
-<span class="n">job1</span><span class="o">=</span><span class="n">MyMaker</span><span class="p">()</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">my_parameter</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">job2</span><span class="o">=</span><span class="n">MyInheritedMaker</span><span class="p">()</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">my_parameter</span><span class="o">=</span><span class="n">job1</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
+
+<span class="n">job1</span> <span class="o">=</span> <span class="n">MyMaker</span><span class="p">()</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">my_parameter</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">job2</span> <span class="o">=</span> <span class="n">MyInheritedMaker</span><span class="p">()</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">my_parameter</span><span class="o">=</span><span class="n">job1</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
-<p>When faced with dynamic workflows (where the number of jobs is unclear before execution) a <code class="docutils literal notranslate"><span class="pre">Response</span></code> object instead of a <code class="docutils literal notranslate"><span class="pre">job</span></code> or <code class="docutils literal notranslate"><span class="pre">Flow</span></code> object can be returned. There are several options to insert the new list of jobs into the <code class="docutils literal notranslate"><span class="pre">Response</span></code> object.
-We will now use this knowledge to implement the Quantum Espresso-related tasks for calculating a “Energy vs. Volume” curve. It’s important to point out that this is only a basic implementation, and further extensions towards data validation or for nicer user experience can be added.</p>
+<p>When faced with dynamic workflows (where the number of jobs is unclear before execution) a <code class="docutils literal notranslate"><span class="pre">Response</span></code> object instead of a <code class="docutils literal notranslate"><span class="pre">job</span></code> or <code class="docutils literal notranslate"><span class="pre">Flow</span></code> object can be returned. There are several options to insert the new list of jobs into the <code class="docutils literal notranslate"><span class="pre">Response</span></code> object.</p>
+</section>
+<section id="implementation-of-quantum-espresso-workflow">
+<h2>Implementation of Quantum Espresso Workflow<a class="headerlink" href="#implementation-of-quantum-espresso-workflow" title="Link to this heading">#</a></h2>
+<p>We will use this knowledge to implement the Quantum Espresso-related tasks for calculating an “Energy vs. Volume” curve. It’s important to note that this is only a basic implementation, and further extensions towards data validation or for a simplified user experience can be added. For example, one can typically configure run commands for quantum-chemical programs via configuration files in atomate2.</p>
 <blockquote>
-<div><p>ℹ️ Note: all outputs of a job need to be transformable into a JSON-like format. Therefore, we use a pymatgen <code class="docutils literal notranslate"><span class="pre">Structure</span></code> object here instead of an ase <code class="docutils literal notranslate"><span class="pre">Atoms</span></code> object. <code class="docutils literal notranslate"><span class="pre">Structure</span></code> inherits from the Python package monty’s MSONable class allowing an easy serialization into a <code class="docutils literal notranslate"><span class="pre">dict</span></code>. In addition, commands to execute jobs might be set in such a way that users can easily adapt them in a configuration file.</p>
+<div><p>ℹ️ Note: all outputs of a job need to be transformable into a JSON-like format. Therefore, we use a pymatgen <code class="docutils literal notranslate"><span class="pre">MSONAtoms</span></code> object here instead of an ase <code class="docutils literal notranslate"><span class="pre">Atoms</span></code> object. <code class="docutils literal notranslate"><span class="pre">MSONAtoms</span></code> inherits from the Python package monty’s MSONable class allowing an easy serialization into a <code class="docutils literal notranslate"><span class="pre">dict</span></code>.</p>
 </div></blockquote>
-<p>For building the Quantum Espresso (QE)-related tasks, we start by importing essential tools to be able to create and navigate directories (<code class="docutils literal notranslate"><span class="pre">os</span></code>) and execute programs like the QE binary (<code class="docutils literal notranslate"><span class="pre">subprocess</span></code>). <code class="docutils literal notranslate"><span class="pre">pydantic</span></code> is very convenient for managing all kinds of data types.</p>
+<p>For building the Quantum Espresso (QE)-related tasks, we start by importing essential tools to be able to create and navigate directories (<code class="docutils literal notranslate"><span class="pre">os</span></code>) and execute programs like the QE binary (<code class="docutils literal notranslate"><span class="pre">subprocess</span></code>). <code class="docutils literal notranslate"><span class="pre">pydantic</span></code> is very convenient for validating all kinds of data types. These Pydantic models can then also be directly used for API development as part of <a class="reference external" href="https://fastapi.tiangolo.com/">FAST-API</a>.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">subprocess</span>
@@ -484,7 +503,7 @@ We will now use this knowledge to implement the Quantum Espresso-related tasks f
 </div>
 </div>
 </div>
-<p>Then we import tools for data plotting and mathematical operations and manipulation.</p>
+<p>Then, we import tools for data plotting as well as mathematical operations and manipulation.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -502,7 +521,7 @@ We will now use this knowledge to implement the Quantum Espresso-related tasks f
 </div>
 </div>
 </div>
-<p>From ADIS we take the QE XML output parser.</p>
+<p>Additionally, we take the QE XML output parser written for this tutorial.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">adis_tools.parsers</span> <span class="kn">import</span> <span class="n">parse_pw</span>
@@ -510,16 +529,22 @@ We will now use this knowledge to implement the Quantum Espresso-related tasks f
 </div>
 </div>
 </div>
-<p>As we want to calculate a (E, V) curve with QE, we start by implementing a function to apply a certain strain to the original structure.</p>
+<p>To calculate a (E, V) curve with QE, we implement a function that applies a certain strain to the original structure.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">generate_structures</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">strain_lst</span><span class="p">):</span>  <span class="c1"># structure should be of ase Atoms type</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymatgen.io.ase</span> <span class="kn">import</span> <span class="n">MSONAtoms</span>
+<span class="kn">from</span> <span class="nn">ase</span> <span class="kn">import</span> <span class="n">Atoms</span>
+
+
+<span class="k">def</span> <span class="nf">generate_structures</span><span class="p">(</span>
+    <span class="n">structure</span><span class="p">:</span> <span class="n">Atoms</span><span class="p">,</span> <span class="n">strain_lst</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+<span class="p">):</span>  <span class="c1"># structure should be of ase Atoms type</span>
+    <span class="n">structure</span> <span class="o">=</span> <span class="n">MSONAtoms</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
     <span class="n">structure_lst</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">strain</span> <span class="ow">in</span> <span class="n">strain_lst</span><span class="p">:</span>
         <span class="n">structure_strain</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="n">structure_strain</span><span class="o">.</span><span class="n">set_cell</span><span class="p">(</span>
-            <span class="n">structure_strain</span><span class="o">.</span><span class="n">cell</span> <span class="o">*</span> <span class="n">strain</span><span class="o">**</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">),</span> 
-            <span class="n">scale_atoms</span><span class="o">=</span><span class="kc">True</span>
+            <span class="n">structure_strain</span><span class="o">.</span><span class="n">cell</span> <span class="o">*</span> <span class="n">strain</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">3</span><span class="p">),</span> <span class="n">scale_atoms</span><span class="o">=</span><span class="kc">True</span>
         <span class="p">)</span>
         <span class="n">structure_lst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">structure_strain</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">structure_lst</span>
@@ -530,7 +555,7 @@ We will now use this knowledge to implement the Quantum Espresso-related tasks f
 <p>Then we define a function to plot and save the (E, V) curve as a PNG file.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">plot_energy_volume_curve</span><span class="p">(</span><span class="n">volume_lst</span><span class="p">,</span> <span class="n">energy_lst</span><span class="p">):</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">plot_energy_volume_curve</span><span class="p">(</span><span class="n">volume_lst</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">energy_lst</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]):</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">volume_lst</span><span class="p">,</span> <span class="n">energy_lst</span><span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Volume&quot;</span><span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Energy&quot;</span><span class="p">)</span>
@@ -542,22 +567,22 @@ We will now use this knowledge to implement the Quantum Espresso-related tasks f
 <p>Next, we need a function to write the QE input files. The <code class="docutils literal notranslate"><span class="pre">input_dict</span></code> has to contain all essential input information like the structure, the pseudopotentials, the number of kpoints, the calculation type and the smearing type.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">write_input</span><span class="p">(</span><span class="n">input_dict</span><span class="p">,</span> <span class="n">working_directory</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">):</span>
-    <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">working_directory</span><span class="p">,</span> <span class="s1">&#39;input.pwi&#39;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">write_input</span><span class="p">(</span><span class="n">input_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">working_directory</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="p">):</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">working_directory</span><span class="p">,</span> <span class="s2">&quot;input.pwi&quot;</span><span class="p">)</span>
     <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">working_directory</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">write</span><span class="p">(</span>
-        <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> 
-        <span class="n">images</span><span class="o">=</span><span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;structure&quot;</span><span class="p">],</span> 
-        <span class="n">Crystal</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
-        <span class="n">kpts</span><span class="o">=</span><span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;kpts&quot;</span><span class="p">],</span> 
+        <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span>
+        <span class="n">images</span><span class="o">=</span><span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;structure&quot;</span><span class="p">],</span>
+        <span class="n">Crystal</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">kpts</span><span class="o">=</span><span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;kpts&quot;</span><span class="p">],</span>
         <span class="n">input_data</span><span class="o">=</span><span class="p">{</span>
-            <span class="s1">&#39;calculation&#39;</span><span class="p">:</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;calculation&quot;</span><span class="p">],</span>
-            <span class="s1">&#39;occupations&#39;</span><span class="p">:</span> <span class="s1">&#39;smearing&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;degauss&#39;</span><span class="p">:</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;smearing&quot;</span><span class="p">],</span>
-        <span class="p">},</span> 
+            <span class="s2">&quot;calculation&quot;</span><span class="p">:</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;calculation&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;occupations&quot;</span><span class="p">:</span> <span class="s2">&quot;smearing&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;degauss&quot;</span><span class="p">:</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;smearing&quot;</span><span class="p">],</span>
+        <span class="p">},</span>
         <span class="n">pseudopotentials</span><span class="o">=</span><span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;pseudopotentials&quot;</span><span class="p">],</span>
-        <span class="n">tstress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
-        <span class="n">tprnfor</span><span class="o">=</span><span class="kc">True</span>
+        <span class="n">tstress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">tprnfor</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span>
 </pre></div>
 </div>
@@ -567,11 +592,11 @@ We will now use this knowledge to implement the Quantum Espresso-related tasks f
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">collect_output</span><span class="p">(</span><span class="n">working_directory</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">):</span>
-    <span class="n">output</span> <span class="o">=</span> <span class="n">parse_pw</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">working_directory</span><span class="p">,</span> <span class="s1">&#39;pwscf.xml&#39;</span><span class="p">))</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">parse_pw</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">working_directory</span><span class="p">,</span> <span class="s2">&quot;pwscf.xml&quot;</span><span class="p">))</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s2">&quot;structure&quot;</span><span class="p">:</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;ase_structure&#39;</span><span class="p">],</span>
+        <span class="s2">&quot;structure&quot;</span><span class="p">:</span> <span class="n">MSONAtoms</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;ase_structure&quot;</span><span class="p">]),</span>
         <span class="s2">&quot;energy&quot;</span><span class="p">:</span> <span class="n">output</span><span class="p">[</span><span class="s2">&quot;energy&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;volume&quot;</span><span class="p">:</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;ase_structure&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get_volume</span><span class="p">(),</span>
+        <span class="s2">&quot;volume&quot;</span><span class="p">:</span> <span class="n">output</span><span class="p">[</span><span class="s2">&quot;ase_structure&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get_volume</span><span class="p">(),</span>
     <span class="p">}</span>
 </pre></div>
 </div>
@@ -588,6 +613,7 @@ We will now use this knowledge to implement the Quantum Espresso-related tasks f
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Writes an QE input based on an input_dict</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">input_dict</span> <span class="o">=</span> <span class="n">input_dict</span>
 
@@ -600,60 +626,72 @@ We will now use this knowledge to implement the Quantum Espresso-related tasks f
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generates an QE input based on the format given in QEInputSet.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">pseudopotentials</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;Al&quot;</span><span class="p">:</span> <span class="s2">&quot;Al.pbe-n-kjpaw_psl.1.0.0.UPF&quot;</span><span class="p">})</span>
-    <span class="n">kpts</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+
+    <span class="n">pseudopotentials</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;Al&quot;</span><span class="p">:</span> <span class="s2">&quot;Al.pbe-n-kjpaw_psl.1.0.0.UPF&quot;</span><span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">kpts</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
     <span class="n">calculation</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;vc-relax&quot;</span>
     <span class="n">smearing</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.02</span>
-    
 
     <span class="k">def</span> <span class="nf">get_input_set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QEInputSet</span><span class="p">:</span>
 
-        <span class="n">input_dict</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;structure&quot;</span><span class="p">:</span><span class="n">structure</span><span class="p">,</span>
-            <span class="s2">&quot;pseudopotentials&quot;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">pseudopotentials</span><span class="p">,</span> 
+        <span class="n">input_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;structure&quot;</span><span class="p">:</span> <span class="n">structure</span><span class="p">,</span>
+            <span class="s2">&quot;pseudopotentials&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">pseudopotentials</span><span class="p">,</span>
             <span class="s2">&quot;kpts&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpts</span><span class="p">,</span>
             <span class="s2">&quot;calculation&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculation</span><span class="p">,</span>
             <span class="s2">&quot;smearing&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">smearing</span><span class="p">,</span>
-                    <span class="p">}</span>
+        <span class="p">}</span>
         <span class="k">return</span> <span class="n">QEInputSet</span><span class="p">(</span><span class="n">input_dict</span><span class="o">=</span><span class="n">input_dict</span><span class="p">)</span>
+
 
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">QEInputStaticGenerator</span><span class="p">(</span><span class="n">QEInputGenerator</span><span class="p">):</span>
     <span class="n">calculation</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;scf&quot;</span>
 
-   
-<span class="k">def</span> <span class="nf">write_qe_input_set</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">input_set_generator</span><span class="o">=</span><span class="n">QEInputGenerator</span><span class="p">(),</span> <span class="n">working_directory</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">):</span>
+
+<span class="k">def</span> <span class="nf">write_qe_input_set</span><span class="p">(</span>
+    <span class="n">structure</span><span class="p">:</span> <span class="n">Atoms</span><span class="p">,</span>
+    <span class="n">input_set_generator</span><span class="p">:</span> <span class="n">InputGenerator</span> <span class="o">=</span> <span class="n">QEInputGenerator</span><span class="p">(),</span>
+    <span class="n">working_directory</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">qis</span> <span class="o">=</span> <span class="n">input_set_generator</span><span class="o">.</span><span class="n">get_input_set</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">)</span>
     <span class="n">qis</span><span class="o">.</span><span class="n">write_input</span><span class="p">(</span><span class="n">working_directory</span><span class="o">=</span><span class="n">working_directory</span><span class="p">)</span>
-    
-    
 </pre></div>
 </div>
 </div>
 </div>
-<p>The next steps are all concerned about handling the execution of QE and the output data collection. We start by defining a QE task document <code class="docutils literal notranslate"><span class="pre">QETaskDoc</span></code> to systematically collect the output data. For the (E, V) curve, the energy and volume are of course the most important information. The task document could be further extended to contain information that is relevant for other purposes. Next, we define a <code class="docutils literal notranslate"><span class="pre">BaseQEMaker</span></code> to handle generic QE jobs (in our case for the structural relaxation) and a separate <code class="docutils literal notranslate"><span class="pre">StaticQEMaker</span></code> for the static QE calculations. The <code class="docutils literal notranslate"><span class="pre">BaseQEMaker</span></code> is expecting the generic input set generated by <code class="docutils literal notranslate"><span class="pre">QEInputGenerator</span></code>, while <code class="docutils literal notranslate"><span class="pre">StaticQEMaker</span></code> expects the <code class="docutils literal notranslate"><span class="pre">QEInputStaticGenerator</span></code> type. As the <code class="docutils literal notranslate"><span class="pre">StaticQEMaker</span></code> inherits from the <code class="docutils literal notranslate"><span class="pre">BaseQEMaker</span></code>, we only need to make sure to pass the correct input set generator type.</p>
+<p>The next steps are all about handling the execution of QE and the output data collection. We start by defining a QE task document <code class="docutils literal notranslate"><span class="pre">QETaskDoc</span></code> to systematically collect the output data. For the (E, V) curve, the energy and volume are of course the most important information. The task document could be further extended to contain other relevant information. Next, we define a <code class="docutils literal notranslate"><span class="pre">BaseQEMaker</span></code> to handle generic QE jobs (in our case for the structural relaxation) and a separate <code class="docutils literal notranslate"><span class="pre">StaticQEMaker</span></code> for the static QE calculations. The <code class="docutils literal notranslate"><span class="pre">BaseQEMaker</span></code> is expecting the generic input set generated by <code class="docutils literal notranslate"><span class="pre">QEInputGenerator</span></code>, while <code class="docutils literal notranslate"><span class="pre">StaticQEMaker</span></code> expects the <code class="docutils literal notranslate"><span class="pre">QEInputStaticGenerator</span></code> type. As the <code class="docutils literal notranslate"><span class="pre">StaticQEMaker</span></code> inherits from the <code class="docutils literal notranslate"><span class="pre">BaseQEMaker</span></code>, we only need to make sure to pass the correct input set generator type.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span> <span class="nn">jobflow</span> <span class="kn">import</span> <span class="n">job</span><span class="p">,</span> <span class="n">Maker</span>
-<span class="kn">from</span> <span class="nn">pymatgen.io.ase</span> <span class="kn">import</span> <span class="n">MSONAtoms</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 
 
-<span class="n">QE_CMD</span><span class="o">=</span> <span class="s2">&quot;mpirun -np 1 pw.x -in input.pwi &gt; output.pwo&quot;</span>
-<span class="k">def</span> <span class="nf">run_qe</span><span class="p">(</span><span class="n">qe_cmd</span><span class="o">=</span><span class="n">QE_CMD</span><span class="p">):</span>
+<span class="n">QE_CMD</span> <span class="o">=</span> <span class="s2">&quot;mpirun -np 1 pw.x -in input.pwi &gt; output.pwo&quot;</span>
+
+
+<span class="k">def</span> <span class="nf">run_qe</span><span class="p">(</span><span class="n">qe_cmd</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">QE_CMD</span><span class="p">):</span>
     <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">(</span><span class="n">qe_cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">universal_newlines</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    
-    
+
+
 <span class="k">class</span> <span class="nc">QETaskDoc</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
     <span class="n">structure</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">MSONAtoms</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;ASE structure&quot;</span><span class="p">)</span>
     <span class="n">energy</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;DFT energy in eV&quot;</span><span class="p">)</span>
     <span class="n">volume</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;volume in Angstrom^3&quot;</span><span class="p">)</span>
-    
+
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_directory</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">working_directory</span><span class="p">):</span>
-        <span class="n">output</span><span class="o">=</span><span class="n">collect_output</span><span class="p">(</span><span class="n">working_directory</span><span class="o">=</span><span class="n">working_directory</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">collect_output</span><span class="p">(</span><span class="n">working_directory</span><span class="o">=</span><span class="n">working_directory</span><span class="p">)</span>
         <span class="c1"># structure object needs to be serializable, i.e., we need an additional transformation</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">MSONAtoms</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;structure&quot;</span><span class="p">]),</span> <span class="n">energy</span><span class="o">=</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;energy&quot;</span><span class="p">],</span> <span class="n">volume</span><span class="o">=</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;volume&quot;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">structure</span><span class="o">=</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;structure&quot;</span><span class="p">],</span>
+            <span class="n">energy</span><span class="o">=</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;energy&quot;</span><span class="p">],</span>
+            <span class="n">volume</span><span class="o">=</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;volume&quot;</span><span class="p">],</span>
+        <span class="p">)</span>
+
 
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">BaseQEMaker</span><span class="p">(</span><span class="n">Maker</span><span class="p">):</span>
@@ -672,9 +710,7 @@ We will now use this knowledge to implement the Quantum Espresso-related tasks f
     <span class="n">input_set_generator</span><span class="p">:</span> <span class="n">QEInputGenerator</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">QEInputGenerator</span><span class="p">)</span>
 
     <span class="nd">@job</span><span class="p">(</span><span class="n">output_schema</span><span class="o">=</span><span class="n">QETaskDoc</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">make</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">structure</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QETaskDoc</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">make</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">:</span> <span class="n">Atoms</span> <span class="o">|</span> <span class="n">MSONAtoms</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QETaskDoc</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Run a QE calculation.</span>
 
@@ -682,7 +718,7 @@ We will now use this knowledge to implement the Quantum Espresso-related tasks f
 <span class="sd">        ----------</span>
 <span class="sd">        structure : MSONAtoms|Atoms</span>
 <span class="sd">            An Atoms or MSONAtoms object.</span>
-<span class="sd">            </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">            Output of a QE calculation</span>
@@ -691,15 +727,17 @@ We will now use this knowledge to implement the Quantum Espresso-related tasks f
 
         <span class="c1"># write qe input files</span>
         <span class="n">write_qe_input_set</span><span class="p">(</span>
-            <span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="n">input_set_generator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">input_set_generator</span><span class="p">)</span>
+            <span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="n">input_set_generator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">input_set_generator</span>
+        <span class="p">)</span>
 
         <span class="c1"># run the QE software</span>
         <span class="n">run_qe</span><span class="p">()</span>
 
         <span class="c1"># parse QE outputs in form of a task document</span>
-        <span class="n">task_doc</span><span class="o">=</span><span class="n">QETaskDoc</span><span class="o">.</span><span class="n">from_directory</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
-        
+        <span class="n">task_doc</span> <span class="o">=</span> <span class="n">QETaskDoc</span><span class="o">.</span><span class="n">from_directory</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="n">task_doc</span>
+
 
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">StaticQEMaker</span><span class="p">(</span><span class="n">BaseQEMaker</span><span class="p">):</span>
@@ -715,22 +753,25 @@ We will now use this knowledge to implement the Quantum Espresso-related tasks f
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;static qe job&quot;</span>
-    <span class="n">input_set_generator</span><span class="p">:</span> <span class="n">QEInputGenerator</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">QEInputStaticGenerator</span><span class="p">)</span>
+    <span class="n">input_set_generator</span><span class="p">:</span> <span class="n">QEInputGenerator</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">default_factory</span><span class="o">=</span><span class="n">QEInputStaticGenerator</span>
+    <span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
-<p>Finally, it’s time to orchestrate all functions and classes together in an actual flow. Note how the number of jobs in <code class="docutils literal notranslate"><span class="pre">get_ev_curve</span></code> can be flexibly controlled by using <code class="docutils literal notranslate"><span class="pre">strain_lst</span></code> and therefore we use <code class="docutils literal notranslate"><span class="pre">Response</span></code> to handle the job output. By making <code class="docutils literal notranslate"><span class="pre">get_ev_curve</span></code> and <code class="docutils literal notranslate"><span class="pre">plot_energy_volume_curve_job</span></code> into <code class="docutils literal notranslate"><span class="pre">job</span></code> objects using the <code class="docutils literal notranslate"><span class="pre">&#64;job</span></code> decorator, we ensure that first all the (E, V) data points are calculated before they are plotted. The <code class="docutils literal notranslate"><span class="pre">qe_flow</span></code> contains the list of the jobs that need to be executed in this workflow. The jobs are connected by the respective <code class="docutils literal notranslate"><span class="pre">job.output</span></code> objects that also ensures the correct order in executing the jobs.</p>
+<p>Finally, it’s time to orchestrate all functions and classes together into an actual flow. Note how the number of jobs in <code class="docutils literal notranslate"><span class="pre">get_ev_curve</span></code> can be flexibly controlled by using <code class="docutils literal notranslate"><span class="pre">strain_lst</span></code> and therefore we use a <code class="docutils literal notranslate"><span class="pre">Response</span></code> object to handle the flexible job output. By making <code class="docutils literal notranslate"><span class="pre">get_ev_curve</span></code> and <code class="docutils literal notranslate"><span class="pre">plot_energy_volume_curve_job</span></code> into <code class="docutils literal notranslate"><span class="pre">job</span></code> objects using the <code class="docutils literal notranslate"><span class="pre">&#64;job</span></code> decorator, we ensure that first all the (E, V) data points are calculated before they are plotted. The <code class="docutils literal notranslate"><span class="pre">qe_flow</span></code> contains the list of the jobs that need to be executed in this workflow. The jobs are connected by the respective <code class="docutils literal notranslate"><span class="pre">job.output</span></code> objects that also ensures the correct order in executing the jobs.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">jobflow</span> <span class="kn">import</span> <span class="n">job</span><span class="p">,</span> <span class="n">Response</span><span class="p">,</span> <span class="n">Flow</span><span class="p">,</span> <span class="n">run_locally</span>
 
 <span class="c1"># set up QE PP env</span>
-<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;ESPRESSO_PSEUDO&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span><span class="si">}</span><span class="s2">/espresso/pseudo&quot;</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;ESPRESSO_PSEUDO&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span><span class="si">}</span><span class="s2">/espresso/pseudo&quot;</span>
+
 
 <span class="nd">@job</span>
-<span class="k">def</span> <span class="nf">get_ev_curve</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">strain_lst</span><span class="p">):</span>
-    <span class="n">structures</span><span class="o">=</span><span class="n">generate_structures</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span><span class="n">strain_lst</span><span class="o">=</span><span class="n">strain_lst</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_ev_curve</span><span class="p">(</span><span class="n">structure</span><span class="p">:</span> <span class="n">Atoms</span> <span class="o">|</span> <span class="n">MSONAtoms</span><span class="p">,</span> <span class="n">strain_lst</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="nb">float</span><span class="p">)):</span>
+    <span class="n">structures</span> <span class="o">=</span> <span class="n">generate_structures</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">strain_lst</span><span class="o">=</span><span class="n">strain_lst</span><span class="p">)</span>
     <span class="n">jobs</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">volumes</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">energies</span> <span class="o">=</span> <span class="p">[]</span>
@@ -739,22 +780,33 @@ We will now use this knowledge to implement the Quantum Espresso-related tasks f
         <span class="n">jobs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_job</span><span class="p">)</span>
         <span class="n">volumes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_job</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">volume</span><span class="p">)</span>
         <span class="n">energies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_job</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">energy</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">replace</span><span class="o">=</span><span class="n">Flow</span><span class="p">(</span><span class="n">jobs</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;energies&quot;</span><span class="p">:</span> <span class="n">energies</span><span class="p">,</span> <span class="s2">&quot;volumes&quot;</span><span class="p">:</span> <span class="n">volumes</span><span class="p">}))</span>
-    
+    <span class="k">return</span> <span class="n">Response</span><span class="p">(</span>
+        <span class="n">replace</span><span class="o">=</span><span class="n">Flow</span><span class="p">(</span><span class="n">jobs</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;energies&quot;</span><span class="p">:</span> <span class="n">energies</span><span class="p">,</span> <span class="s2">&quot;volumes&quot;</span><span class="p">:</span> <span class="n">volumes</span><span class="p">})</span>
+    <span class="p">)</span>
+
+
 <span class="nd">@job</span>
-<span class="k">def</span> <span class="nf">plot_energy_volume_curve_job</span><span class="p">(</span><span class="n">volume_lst</span><span class="p">,</span> <span class="n">energy_lst</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">plot_energy_volume_curve_job</span><span class="p">(</span><span class="n">volume_lst</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="nb">float</span><span class="p">),</span> <span class="n">energy_lst</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="nb">float</span><span class="p">)):</span>
     <span class="n">plot_energy_volume_curve</span><span class="p">(</span><span class="n">volume_lst</span><span class="o">=</span><span class="n">volume_lst</span><span class="p">,</span> <span class="n">energy_lst</span><span class="o">=</span><span class="n">energy_lst</span><span class="p">)</span>
 
-<span class="n">structure</span> <span class="o">=</span> <span class="n">bulk</span><span class="p">(</span><span class="s1">&#39;Al&#39;</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mf">4.15</span><span class="p">,</span> <span class="n">cubic</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">structure</span> <span class="o">=</span> <span class="n">bulk</span><span class="p">(</span><span class="s2">&quot;Al&quot;</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mf">4.15</span><span class="p">,</span> <span class="n">cubic</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">relax</span> <span class="o">=</span> <span class="n">BaseQEMaker</span><span class="p">()</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">MSONAtoms</span><span class="p">(</span><span class="n">structure</span><span class="p">))</span>
-<span class="n">ev_curve_data</span> <span class="o">=</span> <span class="n">get_ev_curve</span><span class="p">(</span><span class="n">relax</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">strain_lst</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="n">ev_curve_data</span> <span class="o">=</span> <span class="n">get_ev_curve</span><span class="p">(</span>
+    <span class="n">relax</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">strain_lst</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="p">)</span>
 <span class="c1"># structure optimization job and (E, V) curve data job connected via relax.output</span>
-<span class="n">plot_curve</span> <span class="o">=</span> <span class="n">plot_energy_volume_curve_job</span><span class="p">(</span><span class="n">volume_lst</span><span class="o">=</span><span class="n">ev_curve_data</span><span class="o">.</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;volumes&quot;</span><span class="p">],</span> <span class="n">energy_lst</span><span class="o">=</span><span class="n">ev_curve_data</span><span class="o">.</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;energies&quot;</span><span class="p">])</span>
+<span class="n">plot_curve</span> <span class="o">=</span> <span class="n">plot_energy_volume_curve_job</span><span class="p">(</span>
+    <span class="n">volume_lst</span><span class="o">=</span><span class="n">ev_curve_data</span><span class="o">.</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;volumes&quot;</span><span class="p">],</span>
+    <span class="n">energy_lst</span><span class="o">=</span><span class="n">ev_curve_data</span><span class="o">.</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;energies&quot;</span><span class="p">],</span>
+<span class="p">)</span>
 <span class="c1"># (E, V) curve data job and plotting the curve job connected via ev_curve_data.output</span>
-<span class="n">qe_flow</span> <span class="o">=</span> <span class="p">[</span><span class="n">relax</span><span class="p">,</span> <span class="n">ev_curve_data</span><span class="p">,</span> <span class="n">plot_curve</span><span class="p">]</span>  
+<span class="n">qe_flow</span> <span class="o">=</span> <span class="p">[</span><span class="n">relax</span><span class="p">,</span> <span class="n">ev_curve_data</span><span class="p">,</span> <span class="n">plot_curve</span><span class="p">]</span>
 <span class="n">qe_fw</span> <span class="o">=</span> <span class="n">Flow</span><span class="p">(</span><span class="n">qe_flow</span><span class="p">)</span>
 <span class="c1"># qe_flow is the QE flow that consists of the job for structural optimization, calculating the (E, V) curve data points and plotting the curve</span>
-<span class="n">run_locally</span><span class="p">(</span><span class="n">qe_fw</span><span class="p">,</span> <span class="n">create_folders</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># order of the jobs in the flow is determined by connectivity</span>
+<span class="n">run_locally</span><span class="p">(</span>
+    <span class="n">qe_fw</span><span class="p">,</span> <span class="n">create_folders</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>  <span class="c1"># order of the jobs in the flow determined by connectivity</span>
 
 <span class="n">graph</span> <span class="o">=</span> <span class="n">to_mermaid</span><span class="p">(</span><span class="n">qe_fw</span><span class="p">,</span> <span class="n">show_flow_boxes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">mm</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span>
@@ -762,72 +814,66 @@ We will now use this knowledge to implement the Quantum Espresso-related tasks f
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-06-30 23:49:02,706 INFO Started executing jobs locally
-2024-06-30 23:49:02,710 INFO Starting job - base qe job (6883bfe0-2b20-49de-92df-c166d6f91dbc)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-07-03 13:59:45,257 INFO Started executing jobs locally
+2024-07-03 13:59:45,266 INFO Starting job - base qe job (fb7e4f95-15fe-4ae0-aa3b-3d0f5dc8b65a)
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Authorization required, but no authorization protocol specified
-Authorization required, but no authorization protocol specified
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Note: The following floating-point exceptions are signalling: IEEE_INVALID_FLAG
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-06-30 23:49:32,255 INFO Finished job - base qe job (6883bfe0-2b20-49de-92df-c166d6f91dbc)
-2024-06-30 23:49:32,256 INFO Starting job - get_ev_curve (dfc9a5cd-fb91-4582-b6c6-c42b4c65cb83)
-2024-06-30 23:49:32,268 INFO Finished job - get_ev_curve (dfc9a5cd-fb91-4582-b6c6-c42b4c65cb83)
-2024-06-30 23:49:32,271 INFO Starting job - static qe job (0a57429a-2360-4293-8f2a-5323a1173570)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-07-03 14:00:31,075 INFO Finished job - base qe job (fb7e4f95-15fe-4ae0-aa3b-3d0f5dc8b65a)
+2024-07-03 14:00:31,078 INFO Starting job - get_ev_curve (8df443c4-f690-4c1b-9126-8455b6458d9d)
+2024-07-03 14:00:31,099 INFO Finished job - get_ev_curve (8df443c4-f690-4c1b-9126-8455b6458d9d)
+2024-07-03 14:00:31,105 INFO Starting job - static qe job (8c2ce097-6b17-43dd-9f03-d4477338688b)
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Authorization required, but no authorization protocol specified
-Authorization required, but no authorization protocol specified
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Note: The following floating-point exceptions are signalling: IEEE_INVALID_FLAG
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-06-30 23:49:35,977 INFO Finished job - static qe job (0a57429a-2360-4293-8f2a-5323a1173570)
-2024-06-30 23:49:35,979 INFO Starting job - static qe job (71996726-fb51-4a1f-8585-373a470bd16c)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-07-03 14:00:37,026 INFO Finished job - static qe job (8c2ce097-6b17-43dd-9f03-d4477338688b)
+2024-07-03 14:00:37,029 INFO Starting job - static qe job (046ab976-1dc9-4b45-816d-86297a209912)
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Authorization required, but no authorization protocol specified
-Authorization required, but no authorization protocol specified
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Note: The following floating-point exceptions are signalling: IEEE_INVALID_FLAG
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-06-30 23:49:39,977 INFO Finished job - static qe job (71996726-fb51-4a1f-8585-373a470bd16c)
-2024-06-30 23:49:39,982 INFO Starting job - static qe job (2cf7b6c9-1f19-4b2f-b85f-df201d546c26)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-07-03 14:00:43,878 INFO Finished job - static qe job (046ab976-1dc9-4b45-816d-86297a209912)
+2024-07-03 14:00:43,883 INFO Starting job - static qe job (2e1199a8-12c0-4df0-afdc-2543f0a1652b)
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Authorization required, but no authorization protocol specified
-Authorization required, but no authorization protocol specified
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Note: The following floating-point exceptions are signalling: IEEE_INVALID_FLAG
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-06-30 23:49:44,274 INFO Finished job - static qe job (2cf7b6c9-1f19-4b2f-b85f-df201d546c26)
-2024-06-30 23:49:44,275 INFO Starting job - static qe job (a04f788d-9bc1-4453-9897-5d0b4e9321d3)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-07-03 14:00:50,753 INFO Finished job - static qe job (2e1199a8-12c0-4df0-afdc-2543f0a1652b)
+2024-07-03 14:00:50,759 INFO Starting job - static qe job (b6118649-654f-445c-ba44-091c6bf6a5af)
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Authorization required, but no authorization protocol specified
-Authorization required, but no authorization protocol specified
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Note: The following floating-point exceptions are signalling: IEEE_INVALID_FLAG
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-06-30 23:49:49,249 INFO Finished job - static qe job (a04f788d-9bc1-4453-9897-5d0b4e9321d3)
-2024-06-30 23:49:49,254 INFO Starting job - static qe job (0ed3d090-bd30-49da-96ed-143b8e7f5b4a)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-07-03 14:00:58,591 INFO Finished job - static qe job (b6118649-654f-445c-ba44-091c6bf6a5af)
+2024-07-03 14:00:58,598 INFO Starting job - static qe job (ed35e52e-fd72-495a-ae7f-4f2f949d8031)
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Authorization required, but no authorization protocol specified
-Authorization required, but no authorization protocol specified
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Note: The following floating-point exceptions are signalling: IEEE_INVALID_FLAG
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-06-30 23:49:54,070 INFO Finished job - static qe job (0ed3d090-bd30-49da-96ed-143b8e7f5b4a)
-2024-06-30 23:49:54,071 INFO Starting job - store_inputs (dfc9a5cd-fb91-4582-b6c6-c42b4c65cb83, 2)
-2024-06-30 23:49:54,073 INFO Finished job - store_inputs (dfc9a5cd-fb91-4582-b6c6-c42b4c65cb83, 2)
-2024-06-30 23:49:54,074 INFO Starting job - plot_energy_volume_curve_job (92d14a25-bb90-4c86-b970-af05db90550e)
-2024-06-30 23:49:54,163 INFO Finished job - plot_energy_volume_curve_job (92d14a25-bb90-4c86-b970-af05db90550e)
-2024-06-30 23:49:54,173 INFO Finished executing jobs locally
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-07-03 14:01:06,332 INFO Finished job - static qe job (ed35e52e-fd72-495a-ae7f-4f2f949d8031)
+2024-07-03 14:01:06,337 INFO Starting job - store_inputs (8df443c4-f690-4c1b-9126-8455b6458d9d, 2)
+2024-07-03 14:01:06,340 INFO Finished job - store_inputs (8df443c4-f690-4c1b-9126-8455b6458d9d, 2)
+2024-07-03 14:01:06,343 INFO Starting job - plot_energy_volume_curve_job (4bb64989-7cc3-4dc4-900f-19c10d959dfa)
+2024-07-03 14:01:06,497 INFO Finished job - plot_energy_volume_curve_job (4bb64989-7cc3-4dc4-900f-19c10d959dfa)
+2024-07-03 14:01:06,498 INFO Finished executing jobs locally
 </pre></div>
 </div>
-<div class="output text_html"><img src="https://mermaid.ink/img/Zmxvd2NoYXJ0IFRECiAgICA2ODgzYmZlMC0yYjIwLTQ5ZGUtOTJkZi1jMTY2ZDZmOTFkYmMoYmFzZSBxZSBqb2IpCiAgICBkZmM5YTVjZC1mYjkxLTQ1ODItYjZjNi1jNDJiNGM2NWNiODMoZ2V0X2V2X2N1cnZlKQogICAgOTJkMTRhMjUtYmI5MC00Yzg2LWI5NzAtYWYwNWRiOTA1NTBlKHBsb3RfZW5lcmd5X3ZvbHVtZV9jdXJ2ZV9qb2Ip"/></div><img alt="_images/b4ed0b6f9d109fbde2914b3d5ea1e9b94c53c9a407f25f17f76c7d28fca5cb06.png" src="_images/b4ed0b6f9d109fbde2914b3d5ea1e9b94c53c9a407f25f17f76c7d28fca5cb06.png" />
+<div class="output text_html"><img src="https://mermaid.ink/img/Zmxvd2NoYXJ0IFRECiAgICBmYjdlNGY5NS0xNWZlLTRhZTAtYWEzYi0zZDBmNWRjOGI2NWEoYmFzZSBxZSBqb2IpCiAgICA4ZGY0NDNjNC1mNjkwLTRjMWItOTEyNi04NDU1YjY0NThkOWQoZ2V0X2V2X2N1cnZlKQogICAgNGJiNjQ5ODktN2NjMy00ZGM0LTkwMGYtMTljMTBkOTU5ZGZhKHBsb3RfZW5lcmd5X3ZvbHVtZV9jdXJ2ZV9qb2Ip"/></div><img alt="_images/8ea39410c04f4b3e8fd43ec5db9a7f384b4ae10d98bbab697713fb2dc339ecc0.png" src="_images/8ea39410c04f4b3e8fd43ec5db9a7f384b4ae10d98bbab697713fb2dc339ecc0.png" />
 </div>
 </div>
 <p>And with using the <code class="docutils literal notranslate"><span class="pre">job.output</span></code> connectivity, the mermaid graph looks like:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mm</span><span class="p">(</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">flowchart TD</span>
 <span class="sd">    6883bfe0-2b20-49de-92df-c166d6f91dbc(base qe job) --&gt; |output.structure| dfc9a5cd-fb91-4582-b6c6-c42b4c65cb83(get_ev_curve)</span>
 <span class="sd">    dfc9a5cd-fb91-4582-b6c6-c42b4c65cb83(get_ev_curve) --&gt; |&#39;volumes&#39;, &#39;energies&#39;| 92d14a25-bb90-4c86-b970-af05db90550e(plot_energy_volume_curve_job)</span>
@@ -857,7 +903,7 @@ There are no dedicated mechanisms to save whole projects, but the database can b
 </section>
 <section id="publication-of-the-workflow">
 <h2>Publication of the workflow<a class="headerlink" href="#publication-of-the-workflow" title="Link to this heading">#</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">jobflow</span></code> infrastructure does not provide a dedicated platform for publishing a workflow currently. However, workflows related to computational materials science have been collected in the package <code class="docutils literal notranslate"><span class="pre">atomate2</span></code>. In addition, users can build their own package by relying on jobflow and share it as any Python project.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">jobflow</span></code> infrastructure does not provide a dedicated platform for publishing a workflow currently. However, workflows related to computational materials science have been collected in the package <code class="docutils literal notranslate"><span class="pre">atomate2</span></code>. In addition, users can build their own package by relying on <code class="docutils literal notranslate"><span class="pre">jobflow</span></code> and share it as a new Python-based program. There are also additional materials science packages like <a class="reference external" href="https://github.com/BlauGroup/NanoParticleTools">NanoParticleTools</a> or <a class="reference external" href="https://github.com/Quantum-Accelerators/quacc">QuAcc</a> that rely on <code class="docutils literal notranslate"><span class="pre">jobflow</span></code>.</p>
 </section>
 </section>
 
@@ -927,6 +973,7 @@ There are no dedicated mechanisms to save whole projects, but the database can b
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation-setup">Installation / Setup</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#basic-introduction-to-jobflow-concepts">Basic introduction to <code class="docutils literal notranslate"><span class="pre">jobflow</span></code> concepts</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implementation-of-quantum-espresso-workflow">Implementation of Quantum Espresso Workflow</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submission-to-an-hpc-check-pointing-error-handling">Submission to an HPC / Check pointing / Error handling</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-storage-data-sharing">Data Storage / Data Sharing</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#publication-of-the-workflow">Publication of the workflow</a></li>
