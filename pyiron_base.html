@@ -474,7 +474,7 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "ec41982b18774dca9d8d18f722e16543"}</script></div>
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "e1f18c4b97f74a729ef7095633bd08cc"}</script></div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -493,7 +493,6 @@ document.write(`
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Structure optimization </span>
 <span class="n">job_qe_minimize</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">wrap_executable</span><span class="p">(</span>
-    <span class="n">job_name</span><span class="o">=</span><span class="s2">&quot;job_qe_minimize&quot;</span><span class="p">,</span>
     <span class="n">write_input_funct</span><span class="o">=</span><span class="n">write_input</span><span class="p">,</span>
     <span class="n">collect_output_funct</span><span class="o">=</span><span class="n">collect_output</span><span class="p">,</span>
     <span class="n">input_dict</span><span class="o">=</span><span class="p">{</span>
@@ -521,9 +520,8 @@ document.write(`
 
 <span class="c1"># Energy Volume Curve </span>
 <span class="n">energy_lst</span><span class="p">,</span> <span class="n">volume_lst</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">structure_strain</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">structure_lst</span><span class="p">):</span>
+<span class="k">for</span> <span class="n">structure_strain</span> <span class="ow">in</span> <span class="n">structure_lst</span><span class="p">:</span>
     <span class="n">job_strain</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">wrap_executable</span><span class="p">(</span>
-        <span class="n">job_name</span><span class="o">=</span><span class="s2">&quot;job_strain_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span>
         <span class="n">write_input_funct</span><span class="o">=</span><span class="n">write_input</span><span class="p">,</span>
         <span class="n">collect_output_funct</span><span class="o">=</span><span class="n">collect_output</span><span class="p">,</span>
         <span class="n">input_dict</span><span class="o">=</span><span class="p">{</span>
@@ -575,26 +573,26 @@ document.write(`
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>The job bulkcccf2ed28a95582963e72206a347a1ab was saved and received the ID: 1
-The job job_qe_minimize was saved and received the ID: 2
-The job generate_structuresed67979d4b605eb7fed792ba9b6ec93d was saved and received the ID: 3
-The job job_strain_0 was saved and received the ID: 4
-The job job_strain_1 was saved and received the ID: 5
-The job job_strain_2 was saved and received the ID: 6
-The job job_strain_3 was saved and received the ID: 7
-The job job_strain_4 was saved and received the ID: 8
-The job collecte3d13cf8a8fff3b11ae7b6ffc338f5bc was saved and received the ID: 9
+The job exe_87f5544230c33af4ec246735c266ceb8 was saved and received the ID: 2
+The job generate_structures85102821e4adf541a41bdb3b61a38f4e was saved and received the ID: 3
+The job exe_e78b321a367645f68b308b8e6fe290c4 was saved and received the ID: 4
+The job exe_1b1b912f5b4ff311cc489ed83d9d6b77 was saved and received the ID: 5
+The job exe_4cc8e402b2667f36f42750e5c3e86589 was saved and received the ID: 6
+The job exe_b4a1c04687200d8f8d3d1cc6c46c8321 was saved and received the ID: 7
+The job exe_c0dbcc52367d0e5a235b75b336af8f7a was saved and received the ID: 8
+The job collect2d0551da339df95780d4c17696f7b2cc was saved and received the ID: 9
 </pre></div>
 </div>
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;volume&#39;: [59.59410625269569,
-  62.90488993340067,
-  66.21567361410612,
-  69.52645729481137,
-  72.8372409755166],
- &#39;energy&#39;: [-1074.8457446150628,
-  -1074.9161488594577,
-  -1074.9365241668297,
-  -1074.9192860025828,
-  -1074.8737904693437]}
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;volume&#39;: [59.594106252696115,
+  62.904889933401115,
+  66.21567361410659,
+  69.52645729481186,
+  72.83724097551718],
+ &#39;energy&#39;: [-1074.8457446150621,
+  -1074.9161488594575,
+  -1074.9365241668318,
+  -1074.9192860025796,
+  -1074.8737904693398]}
 </pre></div>
 </div>
 </div>
