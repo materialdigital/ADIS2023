@@ -9,6 +9,6 @@ dependencies:
 - matplotlib=3.8.4
 - xmlschema=3.3.1
 - jobflow=0.1.17
-- pymatgen=2024.3.1
+- pymatgen=2024.6.10
 - aiida-core=2.5.2
 - aiida-core.services
