@@ -432,6 +432,23 @@ document.write(`
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">calculate_qe</span><span class="p">(</span><span class="n">working_directory</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
+    <span class="n">write_input</span><span class="p">(</span>
+        <span class="n">input_dict</span><span class="o">=</span><span class="n">input_dict</span><span class="p">,</span>
+        <span class="n">working_directory</span><span class="o">=</span><span class="n">working_directory</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">(</span>
+        <span class="s2">&quot;mpirun -np 1 pw.x -in input.pwi &gt; output.pwo&quot;</span><span class="p">,</span>
+        <span class="n">cwd</span><span class="o">=</span><span class="n">working_directory</span><span class="p">,</span>
+        <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">collect_output</span><span class="p">(</span><span class="n">working_directory</span><span class="o">=</span><span class="n">working_directory</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">generate_structures</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">strain_lst</span><span class="p">):</span> 
     <span class="n">structure_lst</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">strain</span> <span class="ow">in</span> <span class="n">strain_lst</span><span class="p">:</span>
@@ -479,7 +496,7 @@ document.write(`
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">write_input</span><span class="p">(</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">output</span> <span class="o">=</span> <span class="n">calculate_qe</span><span class="p">(</span>
     <span class="n">input_dict</span><span class="o">=</span><span class="p">{</span>
         <span class="s2">&quot;structure&quot;</span><span class="p">:</span> <span class="n">structure</span><span class="p">,</span> 
         <span class="s2">&quot;pseudopotentials&quot;</span><span class="p">:</span> <span class="n">pseudopotentials</span><span class="p">,</span> 
@@ -489,37 +506,18 @@ document.write(`
     <span class="p">},</span>
     <span class="n">working_directory</span><span class="o">=</span><span class="s2">&quot;mini&quot;</span><span class="p">,</span>
 <span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">(</span><span class="s2">&quot;mpirun -np 1 pw.x -in input.pwi &gt; output.pwo&quot;</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="s2">&quot;mini&quot;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[jupyter-materialdigital-2dadis2023-2dtr15o25f:00389] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)
-Note: The following floating-point exceptions are signalling: IEEE_INVALID_FLAG
-</pre></div>
-</div>
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>b&#39;&#39;
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">output</span> <span class="o">=</span> <span class="n">collect_output</span><span class="p">(</span><span class="n">working_directory</span><span class="o">=</span><span class="s2">&quot;mini&quot;</span><span class="p">)</span>
 <span class="n">output</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;structure&#39;: Atoms(symbols=&#39;Al4&#39;, pbc=True, cell=[4.045637215947182, 4.045637215947182, 4.045637215947182]),
- &#39;energy&#39;: -1074.9365262253457,
- &#39;volume&#39;: 66.21567448237923}
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[jupyter-materialdigital-2dadis2023-2d1e6eyhr9:00198] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)
+Note: The following floating-point exceptions are signalling: IEEE_INVALID_FLAG
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;structure&#39;: Atoms(symbols=&#39;Al4&#39;, pbc=True, cell=[4.045637215947241, 4.045637215947241, 4.045637215947241]),
+ &#39;energy&#39;: -1074.9365262253455,
+ &#39;volume&#39;: 66.21567448238211}
 </pre></div>
 </div>
 </div>
@@ -539,11 +537,11 @@ Note: The following floating-point exceptions are signalling: IEEE_INVALID_FLAG
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[Atoms(symbols=&#39;Al4&#39;, pbc=True, cell=[3.906019785962478, 3.906019785962478, 3.906019785962478]),
- Atoms(symbols=&#39;Al4&#39;, pbc=True, cell=[3.9770538443183843, 3.9770538443183843, 3.9770538443183843]),
- Atoms(symbols=&#39;Al4&#39;, pbc=True, cell=[4.045637215947182, 4.045637215947182, 4.045637215947182]),
- Atoms(symbols=&#39;Al4&#39;, pbc=True, cell=[4.111970927283303, 4.111970927283303, 4.111970927283303]),
- Atoms(symbols=&#39;Al4&#39;, pbc=True, cell=[4.176230852372533, 4.176230852372533, 4.176230852372533])]
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[Atoms(symbols=&#39;Al4&#39;, pbc=True, cell=[3.9060197859625343, 3.9060197859625343, 3.9060197859625343]),
+ Atoms(symbols=&#39;Al4&#39;, pbc=True, cell=[3.977053844318442, 3.977053844318442, 3.977053844318442]),
+ Atoms(symbols=&#39;Al4&#39;, pbc=True, cell=[4.045637215947241, 4.045637215947241, 4.045637215947241]),
+ Atoms(symbols=&#39;Al4&#39;, pbc=True, cell=[4.111970927283362, 4.111970927283362, 4.111970927283362]),
+ Atoms(symbols=&#39;Al4&#39;, pbc=True, cell=[4.176230852372593, 4.176230852372593, 4.176230852372593])]
 </pre></div>
 </div>
 </div>
@@ -555,9 +553,9 @@ Note: The following floating-point exceptions are signalling: IEEE_INVALID_FLAG
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">energy_lst</span><span class="p">,</span> <span class="n">volume_lst</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
 <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">structure_strain</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">structure_lst</span><span class="p">):</span>
-    <span class="n">write_input</span><span class="p">(</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">calculate_qe</span><span class="p">(</span>
         <span class="n">input_dict</span><span class="o">=</span><span class="p">{</span>
-            <span class="s2">&quot;structure&quot;</span><span class="p">:</span> <span class="n">structure_strain</span><span class="p">,</span> 
+            <span class="s2">&quot;structure&quot;</span><span class="p">:</span> <span class="n">structure_strain</span><span class="p">,</span>
             <span class="s2">&quot;pseudopotentials&quot;</span><span class="p">:</span> <span class="n">pseudopotentials</span><span class="p">,</span> 
             <span class="s2">&quot;kpts&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
             <span class="s2">&quot;calculation&quot;</span><span class="p">:</span> <span class="s2">&quot;scf&quot;</span><span class="p">,</span>
@@ -565,27 +563,21 @@ Note: The following floating-point exceptions are signalling: IEEE_INVALID_FLAG
         <span class="p">},</span>
         <span class="n">working_directory</span><span class="o">=</span><span class="s2">&quot;strain_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span>
     <span class="p">)</span>
-    <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">(</span>
-        <span class="s2">&quot;mpirun -np 1 pw.x -in input.pwi &gt; output.pwo&quot;</span><span class="p">,</span> 
-        <span class="n">cwd</span><span class="o">=</span><span class="s2">&quot;strain_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> 
-        <span class="n">shell</span><span class="o">=</span><span class="kc">True</span>
-    <span class="p">)</span>
-    <span class="n">output</span> <span class="o">=</span> <span class="n">collect_output</span><span class="p">(</span><span class="n">working_directory</span><span class="o">=</span><span class="s2">&quot;strain_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
     <span class="n">energy_lst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;energy&quot;</span><span class="p">])</span>
     <span class="n">volume_lst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;volume&quot;</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[jupyter-materialdigital-2dadis2023-2dtr15o25f:00397] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[jupyter-materialdigital-2dadis2023-2d1e6eyhr9:00206] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)
 Note: The following floating-point exceptions are signalling: IEEE_INVALID_FLAG
-[jupyter-materialdigital-2dadis2023-2dtr15o25f:00405] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)
+[jupyter-materialdigital-2dadis2023-2d1e6eyhr9:00214] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)
 Note: The following floating-point exceptions are signalling: IEEE_INVALID_FLAG
-[jupyter-materialdigital-2dadis2023-2dtr15o25f:00413] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)
+[jupyter-materialdigital-2dadis2023-2d1e6eyhr9:00222] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)
 Note: The following floating-point exceptions are signalling: IEEE_INVALID_FLAG
-[jupyter-materialdigital-2dadis2023-2dtr15o25f:00421] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)
+[jupyter-materialdigital-2dadis2023-2d1e6eyhr9:00230] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)
 Note: The following floating-point exceptions are signalling: IEEE_INVALID_FLAG
-[jupyter-materialdigital-2dadis2023-2dtr15o25f:00429] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)
+[jupyter-materialdigital-2dadis2023-2d1e6eyhr9:00238] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)
 Note: The following floating-point exceptions are signalling: IEEE_INVALID_FLAG
 </pre></div>
 </div>
