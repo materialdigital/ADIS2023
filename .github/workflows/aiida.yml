@@ -23,6 +23,7 @@ jobs:
       run: |
         pip install -e aiida_qe_basic
         conda install -c conda-forge jupyter papermill
+        pip install aiida-shell
         verdi presto
         export ESPRESSO_PSEUDO=$(pwd)/espresso/pseudo
         papermill aiida_base.ipynb aiida_base-out.ipynb -k "python3"
