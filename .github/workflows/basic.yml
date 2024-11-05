@@ -1,4 +1,4 @@
-name: aiida
+name: basic
 
 on:
   push:
@@ -25,4 +25,4 @@ jobs:
         pip install -e aiida_qe_basic
         conda install -c conda-forge jupyter papermill
         export ESPRESSO_PSEUDO=$(pwd)/espresso/pseudo
-        papermill aiida.ipynb aiida-out.ipynb -k "python3"
+        papermill basic.ipynb basic-out.ipynb -k "python3"
