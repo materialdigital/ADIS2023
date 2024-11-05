@@ -26,4 +26,4 @@ jobs:
         pip install aiida-shell
         verdi presto
         export ESPRESSO_PSEUDO=$(pwd)/espresso/pseudo
-        papermill aiida_base.ipynb aiida_base-out.ipynb -k "python3"
+        papermill aiida.ipynb aiida-out.ipynb -k "python3"
