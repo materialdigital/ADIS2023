@@ -353,9 +353,11 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation-and-setup">Installation and setup</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implementation-of-a-new-simulation-code">Implementation of a new simulation code</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#eos">EOS</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submission-to-an-hpc-check-pointing-error-handling">Submission to an HPC / Check pointing / Error handling</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-storage-data-sharing">Data Storage / Data Sharing</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#publication-of-the-workflow">Publication of the workflow</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submission-to-hpc-up-scaling-for-high-throughput-screening">Submission to HPC - up-scaling for high throughput screening</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cache-workflow-steps">Cache Workflow Steps</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#keep-track-of-the-execution">Keep Track of the Execution</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-organisation">Data Organisation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sharing-workflows">Sharing Workflows</a></li>
 </ul>
             </nav>
         </div>
@@ -393,7 +395,7 @@ It intentionally provides a minimal implementation for the sake of simplicity:</
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Profile&lt;uuid=&#39;86fefa9b455f4880ac9746dc8994ddbe&#39; name=&#39;test&#39;&gt;
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Profile&lt;uuid=&#39;40b1c0b67d08458299c7057ec91dea76&#39; name=&#39;presto&#39;&gt;
 </pre></div>
 </div>
 </div>
@@ -532,21 +534,97 @@ However, if you just want to run an external code without too much faff, you can
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="_images/3b5b022c65b53046d0ee57f7cc7593a30dab290ccf14e652a184426a1188b500.png" src="_images/3b5b022c65b53046d0ee57f7cc7593a30dab290ccf14e652a184426a1188b500.png" />
+<img alt="_images/4b050f252472c16a62bb29674a13ae0d829ea60560625d65eaa59e1302627411.png" src="_images/4b050f252472c16a62bb29674a13ae0d829ea60560625d65eaa59e1302627411.png" />
 </div>
 </div>
 </section>
-<section id="submission-to-an-hpc-check-pointing-error-handling">
-<h2>Submission to an HPC / Check pointing / Error handling<a class="headerlink" href="#submission-to-an-hpc-check-pointing-error-handling" title="Link to this heading">#</a></h2>
-<p>To be added…</p>
+<section id="submission-to-hpc-up-scaling-for-high-throughput-screening">
+<h2>Submission to HPC - up-scaling for high throughput screening<a class="headerlink" href="#submission-to-hpc-up-scaling-for-high-throughput-screening" title="Link to this heading">#</a></h2>
+<p>AiiDA allows registering remote HPC compute resources in its database, which can then be used for submitting simulations. Registration can be achieved via the CLI with <code class="docutils literal notranslate"><span class="pre">verdi</span> <span class="pre">computer</span> <span class="pre">setup</span></code>, followed by <code class="docutils literal notranslate"><span class="pre">verdi</span> <span class="pre">computer</span> <span class="pre">configure</span></code>, or via the Python API (see below). With the first command, the database entry for the <code class="docutils literal notranslate"><span class="pre">Computer</span></code> is created (and the provided information immutably stored in the DB), while the second command <em>configures</em> the compute resource, which are, among others, the SSH connection parameters.</p>
+<p>AiiDA provides interfaces for various <em>transport technologies</em>, most notably SSH, implemented, as well as the most common schedulers, such as SLURM or SGE. This means that after successful registration in the database, using such HPC resources is as simple as changing a single string in the submission script that specifies the computer where the calculation should be run. When a simulation is started, AiiDA takes care to communicate with the HPC and upload all required files, as well as generate the submission script. In addition to the remote compute resource, also the codes (executables) have to be registered to such that they can then be used to run simulations.</p>
+<p>One advantage of this design, among others, is the fact that utilizing different HPCs, even within one workflow, can be easily achieved by using the corresponding identifiers of the compute resources. In addition, the software environment does <em>not</em> have to be duplicated on the HPC, but AiiDA instead runs locally. However, this means that compute resources first have to be correctly registered in AiiDA, which can present an initial barrier for new users. The following code snippets show how a computer and a code can be registered via the Python API:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The `get_or_create` method allows keeping the `Computer` generation atomic within this notebook</span>
+<span class="kn">from</span> <span class="nn">aiida</span> <span class="kn">import</span> <span class="n">orm</span>
+
+<span class="n">created</span><span class="p">,</span> <span class="n">computer</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">Computer</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span>
+    <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Todi&quot;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;New Todi HPC at CSCS&quot;</span><span class="p">,</span>
+    <span class="n">hostname</span><span class="o">=</span><span class="s2">&quot;todi&quot;</span><span class="p">,</span>
+    <span class="n">workdir</span><span class="o">=</span><span class="s2">&quot;/scratch/&lt;user&gt;/aiida&quot;</span><span class="p">,</span>
+    <span class="n">transport_type</span><span class="o">=</span><span class="s2">&quot;core.ssh&quot;</span><span class="p">,</span>
+    <span class="n">scheduler_type</span><span class="o">=</span><span class="s2">&quot;core.slurm&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="k">if</span> <span class="n">created</span><span class="p">:</span>
+    <span class="n">computer</span><span class="o">.</span><span class="n">store</span><span class="p">()</span>
+    <span class="n">computer</span><span class="o">.</span><span class="n">set_minimum_job_poll_interval</span><span class="p">(</span><span class="mf">10.0</span><span class="p">)</span>
+    <span class="n">computer</span><span class="o">.</span><span class="n">set_default_mpiprocs_per_machine</span><span class="p">(</span><span class="mi">128</span><span class="p">)</span>
+    <span class="n">computer</span><span class="o">.</span><span class="n">set_append_text</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">computer</span><span class="o">.</span><span class="n">set_prepend_text</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">computer</span><span class="o">.</span><span class="n">configure</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">computer</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Register a code for later use </span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">code</span> <span class="o">=</span> <span class="n">aiida</span><span class="o">.</span><span class="n">orm</span><span class="o">.</span><span class="n">load_code</span><span class="p">(</span><span class="s2">&quot;pw.x@todi&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">aiida</span><span class="o">.</span><span class="n">common</span><span class="o">.</span><span class="n">NotExistent</span><span class="p">:</span>
+    <span class="n">code</span> <span class="o">=</span> <span class="n">aiida</span><span class="o">.</span><span class="n">orm</span><span class="o">.</span><span class="n">Code</span><span class="p">(</span>
+        <span class="n">computer</span><span class="o">=</span><span class="n">load_computer</span><span class="p">(</span><span class="s1">&#39;todi&#39;</span><span class="p">),</span>
+        <span class="n">remote_computer_exec</span><span class="o">=</span><span class="p">[</span><span class="n">computer</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">pwx_path</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">code</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;pw.x&quot;</span>
+    <span class="n">code</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Quantum ESPRESSO pw.x code&quot;</span>
+    <span class="n">code</span><span class="o">.</span><span class="n">set_prepend_text</span><span class="p">(</span><span class="s2">&quot;export OMP_NUM_THREADS=1&quot;</span><span class="p">)</span>
+    <span class="n">code</span><span class="o">.</span><span class="n">store</span><span class="p">()</span>
+<span class="n">code</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># For `aiida-shell` the computer can directly be passed to the metadata options of the simulation</span>
+<span class="c1"># This is because the executable is directly passed as the first argument to the `launch_shell_job` function</span>
+<span class="c1"># And the path is resolved internally and a `Code` entity created</span>
+<span class="n">metadata</span><span class="o">=</span><span class="p">{</span>
+        <span class="s1">&#39;options&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;prepend_text&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;export ESPRESSO_PSEUDO </span><span class="si">{</span><span class="n">FILEPATH_PSEUDOS</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;redirect_stderr&#39;</span><span class="p">:</span> <span class="kc">True</span>
+            <span class="s1">&#39;computer&#39;</span><span class="p">:</span> <span class="n">load_computer</span><span class="p">(</span><span class="s1">&#39;&lt;my-hpc-resorce&gt;&#39;</span><span class="p">),</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+</pre></div>
+</div>
 </section>
-<section id="data-storage-data-sharing">
-<h2>Data Storage / Data Sharing<a class="headerlink" href="#data-storage-data-sharing" title="Link to this heading">#</a></h2>
-<p>To be added…</p>
+<section id="cache-workflow-steps">
+<h2>Cache Workflow Steps<a class="headerlink" href="#cache-workflow-steps" title="Link to this heading">#</a></h2>
+<p>AiiDA provides caching functionality out of the box.
+By default, caching is turned off, however, it can be globally enabled via the CLI with the command:
+<code class="docutils literal notranslate"><span class="pre">verdi</span> <span class="pre">config</span> <span class="pre">set</span> <span class="pre">caching.default_enabled</span> <span class="pre">True</span></code>
+as well as for individual simulation types with, e.g.
+<code class="docutils literal notranslate"><span class="pre">verdi</span> <span class="pre">config</span> <span class="pre">set</span> <span class="pre">caching.enabled_for</span> <span class="pre">aiida.calculations:quantumespresso.pw</span></code>.</p>
+<p>To achieve this, all nodes are automatically hashed, and the hashes saved in the <em>extras</em> of the respective Nodes once they are stored in the database:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">aiida</span> <span class="kn">import</span> <span class="n">orm</span>
+<span class="n">node</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">node</span><span class="o">.</span><span class="n">store</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">caching</span><span class="o">.</span><span class="n">get_hash</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>Caching is then made possible by comparing the hashes of the <code class="docutils literal notranslate"><span class="pre">ProcessNode</span></code> of a given simulation that is to be executed, including all its input <code class="docutils literal notranslate"><span class="pre">Data</span></code> nodes, and comparing those with the existing entries in the DB. If the exact same simulation has already been carried out successfully, the corresponding nodes are duplicated and inserted into the workflow, rather than running the same simulation again. While this saves computational time, it does not necessarily save space, due to the duplication of data.</p>
+<p>There are a few details to keep in mind for caching, because, as the saying goes <em>“There are only two hard things in Computer Science: cache invalidation and naming things.”</em> For one, a choice has to be made which data should be included when calculating the hash. E.g., which input nodes should be considered for calculating the hash of a Process? Or to which precision should the AiiDA, as well as the plugin version be included for evaluating the hash? We can assume that results between different major versions actually <em>are</em> different, but what about minor and patch versions? Overall, a balance has to be found between minimizing the chance of false negatives, where two nodes should have the same hash but do not, and false positives, where two different nodes get the same hash by mistake. For instance, if every patch version would lead to different hashes, despite the fact that results can be expected to be the same, the feature would not be very useful. Furthermore, it is not immediately clear how far a workflow should be traced to generate the hash of a given Data node that it produced.</p>
 </section>
-<section id="publication-of-the-workflow">
-<h2>Publication of the workflow<a class="headerlink" href="#publication-of-the-workflow" title="Link to this heading">#</a></h2>
-<p>To be added…</p>
+<section id="keep-track-of-the-execution">
+<h2>Keep Track of the Execution<a class="headerlink" href="#keep-track-of-the-execution" title="Link to this heading">#</a></h2>
+<p>As provenance is one of the principal features behind AiiDA, great care has been taken during its development to ensure that the execution of a workflow is being tracked and that data can always be traced back. In addition, AiiDA implements checkpointing, meaning that each successful step completed during the execution of a workflow is recorded in the database. This allows restarting a running workflow, even after the workstation that runs AiiDA has been shut down or an SSH connection to an HPC has dropped.</p>
+</section>
+<section id="data-organisation">
+<h2>Data Organisation<a class="headerlink" href="#data-organisation" title="Link to this heading">#</a></h2>
+<p>AiiDA stores data in an SQL database, as well as an internal file repository. The former is used for input/parsed output Data nodes of well-defined types, such as <code class="docutils literal notranslate"><span class="pre">str</span></code> or <code class="docutils literal notranslate"><span class="pre">int</span></code> (using the corresponding AiiDA data types), while raw files are stored in the file repository (as they are often too large to store the contents in the SQL database).</p>
+<p>To organize data, AiiDA provides the concepts of <em>Groups</em> that can be used to create collections of specific data nodes, such as, for example, all crystal structures used for a study, or all band structure simulations (but groups with mixed types are of course possible). As AiiDA further stores plenty of useful metadata (such as the creation and last modification time), one can easily query and/or filter data even years after its creation. Without a computational infrastructure like AiiDA, it can be otherwise difficult to navigate files and folders. Of course, also with AiiDA, proper organization using groups, and, possibly, adding additional metadata to the Nodes is just as helpful as keeping a logical directory structure when working with files and folders.</p>
+</section>
+<section id="sharing-workflows">
+<h2>Sharing Workflows<a class="headerlink" href="#sharing-workflows" title="Link to this heading">#</a></h2>
+<p>Lastly, once all required simulations have been conducted AiiDA, thus concluding a research project, all data can be exported using the <code class="docutils literal notranslate"><span class="pre">verdi</span> <span class="pre">archive</span> <span class="pre">create</span></code> CLI endpoint. Here, collections of data nodes, groups, or  other entities can be selected for exporting (in addition to <em>all</em> profile data). These archives can then be shared with other researchers, who can import them into their AiiDA profiles.</p>
+<p>While the data of a concrete, executed workflow is contained in the exported archives, the workflow logic cannot be shared in the same way. Instead, however, it is defined by the Python source code that was used to set up the workflow. These workflows are usually grouped together (with other required code infrastructure), in AiiDA-plugins, of which an extensive collection is available to the general public in the <a class="reference external" href="https://aiidateam.github.io/aiida-registry/">AiiDA plugin registry</a>.</p>
 </section>
 </section>
 
@@ -618,9 +696,11 @@ However, if you just want to run an external code without too much faff, you can
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation-and-setup">Installation and setup</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implementation-of-a-new-simulation-code">Implementation of a new simulation code</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#eos">EOS</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submission-to-an-hpc-check-pointing-error-handling">Submission to an HPC / Check pointing / Error handling</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-storage-data-sharing">Data Storage / Data Sharing</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#publication-of-the-workflow">Publication of the workflow</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submission-to-hpc-up-scaling-for-high-throughput-screening">Submission to HPC - up-scaling for high throughput screening</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cache-workflow-steps">Cache Workflow Steps</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#keep-track-of-the-execution">Keep Track of the Execution</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-organisation">Data Organisation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sharing-workflows">Sharing Workflows</a></li>
 </ul>
   </nav></div>
 
