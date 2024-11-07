@@ -1,1 +1,2 @@
 pip install -e aiida_qe_basic
+verdi presto
