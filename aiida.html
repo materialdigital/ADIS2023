@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Aiida &#8212; ADIS2023</title>
+    <title>AiiDA &#8212; ADIS2023</title>
   
   
   
@@ -171,7 +171,7 @@
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="challenges.html">Challenges</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Aiida</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">AiiDA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="jobflow.html">jobflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pyiron_base.html">pyiron</a></li>
 
@@ -340,7 +340,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Aiida</h1>
+    <h1>AiiDA</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -350,15 +350,12 @@
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#equation-of-state-curve-basic-qe">Equation of State curve - basic QE</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#importing-a-structure">Importing a structure</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#relaxing-the-geometry">Relaxing the geometry</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#calc-function-to-rescale-structures">Calc function to rescale structures</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#eos-work-function-version">EOS: Work function version</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#work-chain-version">Work chain version</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#using-the-builder">Using the <code class="docutils literal notranslate"><span class="pre">builder</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation-and-setup">Installation and setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implementation-of-a-new-simulation-code">Implementation of a new simulation code</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#eos">EOS</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submission-to-an-hpc-check-pointing-error-handling">Submission to an HPC / Check pointing / Error handling</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-storage-data-sharing">Data Storage / Data Sharing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#publication-of-the-workflow">Publication of the workflow</a></li>
 </ul>
             </nav>
         </div>
@@ -371,376 +368,153 @@
                 <article class="bd-article">
                   
   <section class="tex2jax_ignore mathjax_ignore" id="aiida">
-<h1>Aiida<a class="headerlink" href="#aiida" title="Link to this heading">#</a></h1>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">subprocess</span>
+<h1>AiiDA<a class="headerlink" href="#aiida" title="Link to this heading">#</a></h1>
+<p>This implementation uses AiiDA to implement the equation of state workflow with Quantum ESPRESSO.
+It intentionally provides a minimal implementation for the sake of simplicity:</p>
+<ul class="simple">
+<li><p>Quantum ESPRESSO is run locally, but could be run on a remote cluster</p></li>
+<li><p>Not all steps of the procedure are captured by provenance, just the Quantum ESPRESSO calculations</p></li>
+<li><p>The entire procedure is not yet wrapped up in a single workflow</p></li>
+<li><p>The SCF calculations are run serially but could be run in parallel</p></li>
+</ul>
+<section id="installation-and-setup">
+<h2>Installation and setup<a class="headerlink" href="#installation-and-setup" title="Link to this heading">#</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">aiida</span><span class="o">-</span><span class="n">core</span><span class="p">[</span><span class="n">atomic</span><span class="o">-</span><span class="n">tools</span><span class="p">]</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">aiida</span><span class="o">-</span><span class="n">shell</span>
+<span class="n">verdi</span> <span class="n">presto</span>
 </pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span> 
-    <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">([</span><span class="s2">&quot;verdi&quot;</span><span class="p">,</span> <span class="s2">&quot;profile&quot;</span><span class="p">,</span> <span class="s2">&quot;setup&quot;</span><span class="p">,</span> <span class="s2">&quot;core.sqlite_dos&quot;</span><span class="p">,</span> <span class="s2">&quot;-n&quot;</span><span class="p">,</span> <span class="s2">&quot;--profile&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="s2">&quot;--email&quot;</span><span class="p">,</span> <span class="s2">&quot;no@email.com&quot;</span><span class="p">])</span>
-<span class="k">except</span><span class="p">:</span> 
-    <span class="k">pass</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/srv/conda/envs/notebook/lib/python3.11/site-packages/aiida/manage/configuration/settings.py:59: UserWarning: Creating AiiDA configuration folder `/home/jovyan/.aiida`.
-  warnings.warn(f&#39;Creating AiiDA configuration folder `{path}`.&#39;)
-</pre></div>
-</div>
-</div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">ase.build</span> <span class="kn">import</span> <span class="n">bulk</span>
-
-<span class="kn">from</span> <span class="nn">aiida</span> <span class="kn">import</span> <span class="n">orm</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">load_profile</span>
-<span class="kn">from</span> <span class="nn">aiida.common.exceptions</span> <span class="kn">import</span> <span class="n">NotExistent</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">aiida</span> <span class="kn">import</span> <span class="n">load_profile</span>
 
 <span class="n">load_profile</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Profile&lt;uuid=&#39;970c10a80dad4217a0f75cca3dd833b2&#39; name=&#39;test&#39;&gt;
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Profile&lt;uuid=&#39;86fefa9b455f4880ac9746dc8994ddbe&#39; name=&#39;test&#39;&gt;
 </pre></div>
 </div>
 </div>
 </div>
+</section>
+<section id="implementation-of-a-new-simulation-code">
+<h2>Implementation of a new simulation code<a class="headerlink" href="#implementation-of-a-new-simulation-code" title="Link to this heading">#</a></h2>
+<p>AiiDA allows developers to implement complex interfaces for any external code, with features such as input validation, error handling etc.
+However, if you just want to run an external code without too much faff, you can use <code class="docutils literal notranslate"><span class="pre">aiida-shell</span></code> to do so.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
-    <span class="n">localhost</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">load_computer</span><span class="p">(</span><span class="s1">&#39;localhost&#39;</span><span class="p">)</span>
-<span class="k">except</span> <span class="n">NotExistent</span><span class="p">:</span>
-    <span class="n">localhost</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">Computer</span><span class="p">(</span>
-        <span class="n">label</span><span class="o">=</span><span class="s1">&#39;localhost&#39;</span><span class="p">,</span>
-        <span class="n">hostname</span><span class="o">=</span><span class="s1">&#39;localhost&#39;</span><span class="p">,</span>
-        <span class="n">transport_type</span><span class="o">=</span><span class="s1">&#39;core.local&#39;</span><span class="p">,</span>
-        <span class="n">scheduler_type</span><span class="o">=</span><span class="s1">&#39;core.direct&#39;</span><span class="p">,</span>
-        <span class="n">workdir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s1">&#39;workdir&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">absolute</span><span class="p">()</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span>
-    <span class="p">)</span><span class="o">.</span><span class="n">store</span><span class="p">()</span>
-    <span class="n">localhost</span><span class="o">.</span><span class="n">configure</span><span class="p">()</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 
-<span class="k">try</span><span class="p">:</span>
-    <span class="n">pw_code</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">load_code</span><span class="p">(</span><span class="s1">&#39;pw@localhost&#39;</span><span class="p">)</span>
-<span class="k">except</span> <span class="n">NotExistent</span><span class="p">:</span>
-    <span class="n">pw_code</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">InstalledCode</span><span class="p">(</span>
-        <span class="n">label</span><span class="o">=</span><span class="s1">&#39;pw&#39;</span><span class="p">,</span>
-        <span class="n">computer</span><span class="o">=</span><span class="n">localhost</span><span class="p">,</span>
-        <span class="n">filepath_executable</span><span class="o">=</span><span class="s1">&#39;pw.x&#39;</span><span class="p">,</span>
-        <span class="n">default_calc_job_plugin</span><span class="o">=</span><span class="s1">&#39;aiida_qe_basic.pw&#39;</span><span class="p">,</span>
-        <span class="n">prepend_text</span><span class="o">=</span><span class="s1">&#39;export OMP_NUM_THREADS=1&#39;</span>
-    <span class="p">)</span><span class="o">.</span><span class="n">store</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/srv/conda/envs/notebook/lib/python3.11/site-packages/aiida/orm/nodes/data/code/legacy.py:42: AiidaDeprecationWarning: The `Code` class is deprecated. To create an instance, use the `aiida.orm.nodes.data.code.installed.InstalledCode` or `aiida.orm.nodes.data.code.portable.PortableCode` for a &quot;remote&quot; or &quot;local&quot; code, respectively. If you are using this class to compare type, e.g. in `isinstance`, use `aiida.orm.nodes.data.code.abstract.AbstractCode`. (this will be removed in v3)
-  warn_deprecation(
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">aiida_qe_basic.pw</span> <span class="kn">import</span> <span class="n">PwCalculation</span>
+<span class="kn">from</span> <span class="nn">ase.build</span> <span class="kn">import</span> <span class="n">bulk</span>
+<span class="kn">from</span> <span class="nn">aiida.orm</span> <span class="kn">import</span> <span class="n">SinglefileData</span>
 
-<span class="n">builder</span> <span class="o">=</span> <span class="n">PwCalculation</span><span class="o">.</span><span class="n">get_builder</span><span class="p">()</span>
+<span class="kn">from</span> <span class="nn">functions</span> <span class="kn">import</span> <span class="n">write_input</span>
 
-<span class="n">builder</span><span class="o">.</span><span class="n">code</span> <span class="o">=</span> <span class="n">pw_code</span>
-<span class="n">builder</span><span class="o">.</span><span class="n">structure</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">StructureData</span><span class="p">(</span><span class="n">ase</span><span class="o">=</span><span class="n">bulk</span><span class="p">(</span><span class="s1">&#39;Al&#39;</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mf">4.05</span><span class="p">,</span> <span class="n">cubic</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
-<span class="n">builder</span><span class="o">.</span><span class="n">pseudopotentials</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">Dict</span><span class="p">({</span><span class="s2">&quot;Al&quot;</span><span class="p">:</span> <span class="s2">&quot;Al.pbe-n-kjpaw_psl.1.0.0.UPF&quot;</span><span class="p">})</span>
-<span class="n">builder</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span>
-    <span class="p">{</span>
-        <span class="s1">&#39;CONTROL&#39;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s1">&#39;calculation&#39;</span><span class="p">:</span> <span class="s1">&#39;scf&#39;</span><span class="p">,</span>
-            <span class="c1"># &#39;pseudo_dir&#39;: Path(&#39;files&#39;).absolute().as_posix(),</span>
+<span class="n">FILEPATH_PSEUDOS</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;espresso&#39;</span> <span class="o">/</span> <span class="s1">&#39;pseudo&#39;</span>
+<span class="n">pseudopotentials</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Al&quot;</span><span class="p">:</span> <span class="s2">&quot;Al.pbe-n-kjpaw_psl.1.0.0.UPF&quot;</span><span class="p">}</span>
+
+<span class="n">input_string</span> <span class="o">=</span> <span class="n">write_input</span><span class="p">(</span>
+    <span class="n">input_dict</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;structure&quot;</span><span class="p">:</span> <span class="n">bulk</span><span class="p">(</span><span class="s1">&#39;Al&#39;</span><span class="p">),</span> 
+        <span class="s2">&quot;pseudopotentials&quot;</span><span class="p">:</span> <span class="n">pseudopotentials</span><span class="p">,</span> 
+        <span class="s2">&quot;kpts&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s2">&quot;calculation&quot;</span><span class="p">:</span> <span class="s2">&quot;vc-relax&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;smearing&quot;</span><span class="p">:</span> <span class="mf">0.02</span><span class="p">,</span>
         <span class="p">},</span>
-        <span class="s1">&#39;SYSTEM&#39;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s1">&#39;occupations&#39;</span><span class="p">:</span> <span class="s1">&#39;smearing&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;smearing&#39;</span><span class="p">:</span> <span class="s1">&#39;cold&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;degauss&#39;</span><span class="p">:</span> <span class="mf">0.02</span>
+    <span class="n">return_string</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Although the <code class="docutils literal notranslate"><span class="pre">pw.x</span></code> executable can be run without any parsing, let’s add a parser that converts the outputs into AiiDA nodes to improve the richness of the provenance:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">aiida</span> <span class="kn">import</span> <span class="n">orm</span>
+<span class="kn">from</span> <span class="nn">adis_tools.parsers</span> <span class="kn">import</span> <span class="n">parse_pw</span>
+
+<span class="k">def</span> <span class="nf">pw_parser</span><span class="p">(</span><span class="n">dirpath</span><span class="p">):</span>
+    
+    <span class="n">parsed_data</span> <span class="o">=</span> <span class="n">parse_pw</span><span class="p">(</span><span class="n">dirpath</span> <span class="o">/</span> <span class="s1">&#39;pwscf.xml&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">&#39;structure&#39;</span><span class="p">:</span> <span class="n">orm</span><span class="o">.</span><span class="n">StructureData</span><span class="p">(</span><span class="n">ase</span><span class="o">=</span><span class="n">parsed_data</span><span class="p">[</span><span class="s1">&#39;ase_structure&#39;</span><span class="p">]),</span>
+        <span class="s1">&#39;energy&#39;</span><span class="p">:</span> <span class="n">orm</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="n">parsed_data</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">]),</span>
+        <span class="s1">&#39;volume&#39;</span><span class="p">:</span> <span class="n">orm</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="n">parsed_data</span><span class="p">[</span><span class="s1">&#39;ase_structure&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get_volume</span><span class="p">()),</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now it’s time to run the relaxation:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">aiida_shell</span> <span class="kn">import</span> <span class="n">launch_shell_job</span>
+
+<span class="n">results_relax</span><span class="p">,</span> <span class="n">node_relax</span> <span class="o">=</span> <span class="n">launch_shell_job</span><span class="p">(</span>
+    <span class="s1">&#39;pw.x&#39;</span><span class="p">,</span>
+    <span class="n">arguments</span><span class="o">=</span><span class="s1">&#39;-in </span><span class="si">{input_file}</span><span class="s1">&#39;</span><span class="p">,</span>
+    <span class="n">parser</span><span class="o">=</span><span class="n">pw_parser</span><span class="p">,</span>
+    <span class="n">nodes</span><span class="o">=</span><span class="p">{</span>
+        <span class="s1">&#39;input_file&#39;</span><span class="p">:</span> <span class="n">SinglefileData</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">input_string</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;input.pwi&#39;</span><span class="p">),</span>
+    <span class="p">},</span>
+    <span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;pwscf.xml&#39;</span><span class="p">,</span> <span class="p">],</span>
+    <span class="n">metadata</span><span class="o">=</span><span class="p">{</span>
+        <span class="s1">&#39;options&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;prepend_text&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;export ESPRESSO_PSEUDO </span><span class="si">{</span><span class="n">FILEPATH_PSEUDOS</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;redirect_stderr&#39;</span><span class="p">:</span> <span class="kc">True</span>
         <span class="p">}</span>
     <span class="p">}</span>
 <span class="p">)</span>
-<span class="n">builder</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">resources</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;num_machines&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s1">&#39;num_mpiprocs_per_machine&#39;</span><span class="p">:</span> <span class="mi">1</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">!</span><span class="w"> </span>rabbitmq-server<span class="w"> </span>-detached
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">!</span><span class="w"> </span>sleep<span class="w"> </span><span class="m">5</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">results</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">builder</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">results</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;structure&#39;: &lt;StructureData: uuid: 2139a72b-1693-41e5-b4a2-212ef6852ddf (pk: 8)&gt;,
- &#39;properties&#39;: &lt;Dict: uuid: 1900ab56-ffd9-4739-8557-d428af731e8d (pk: 9)&gt;,
- &#39;remote_folder&#39;: &lt;RemoteData: uuid: aa74ac59-2511-44c4-ad67-27999a687256 (pk: 6)&gt;,
- &#39;retrieved&#39;: &lt;FolderData: uuid: e7ec1c33-f4cd-416b-96d0-defb7c21acd3 (pk: 7)&gt;}
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get_dict</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;energy&#39;: -1074.9272223013, &#39;volume&#39;: 66.430124128914}
-</pre></div>
-</div>
-</div>
-</div>
-<section id="equation-of-state-curve-basic-qe">
-<h2>Equation of State curve - basic QE<a class="headerlink" href="#equation-of-state-curve-basic-qe" title="Link to this heading">#</a></h2>
-<p>Running an EOS without all the fancy features in the <code class="docutils literal notranslate"><span class="pre">aiida-quantumespresso</span></code> plugin.</p>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-
-<span class="kn">from</span> <span class="nn">aiida</span> <span class="kn">import</span> <span class="n">orm</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">load_profile</span>
-
-<span class="n">load_profile</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Profile&lt;uuid=&#39;970c10a80dad4217a0f75cca3dd833b2&#39; name=&#39;test&#39;&gt;
-</pre></div>
-</div>
-</div>
-</div>
-<section id="importing-a-structure">
-<h3>Importing a structure<a class="headerlink" href="#importing-a-structure" title="Link to this heading">#</a></h3>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ase.build</span> <span class="kn">import</span> <span class="n">bulk</span>
-
-<span class="n">structure</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">StructureData</span><span class="p">(</span><span class="n">ase</span><span class="o">=</span><span class="n">bulk</span><span class="p">(</span><span class="s1">&#39;Al&#39;</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mf">4.05</span><span class="p">,</span> <span class="n">cubic</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
 </div>
 </section>
-<section id="relaxing-the-geometry">
-<h3>Relaxing the geometry<a class="headerlink" href="#relaxing-the-geometry" title="Link to this heading">#</a></h3>
+<section id="eos">
+<h2>EOS<a class="headerlink" href="#eos" title="Link to this heading">#</a></h2>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">resources</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;num_machines&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s1">&#39;num_mpiprocs_per_machine&#39;</span><span class="p">:</span> <span class="mi">1</span>
-<span class="p">}</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">functions</span> <span class="kn">import</span> <span class="n">generate_structures</span>
 
-<span class="n">relax_params</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;CONTROL&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">&#39;calculation&#39;</span><span class="p">:</span> <span class="s1">&#39;vc-relax&#39;</span><span class="p">,</span>
-        <span class="c1"># &#39;pseudo_dir&#39;: Path(&#39;files&#39;).absolute().as_posix(),</span>
-    <span class="p">},</span>
-    <span class="s1">&#39;SYSTEM&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">&#39;occupations&#39;</span><span class="p">:</span> <span class="s1">&#39;smearing&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;smearing&#39;</span><span class="p">:</span> <span class="s1">&#39;cold&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;degauss&#39;</span><span class="p">:</span> <span class="mf">0.02</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">aiida_qe_basic.pw</span> <span class="kn">import</span> <span class="n">PwCalculation</span>
+<span class="n">scaled_structures</span> <span class="o">=</span> <span class="n">generate_structures</span><span class="p">(</span>
+    <span class="n">results_relax</span><span class="p">[</span><span class="s1">&#39;structure&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get_ase</span><span class="p">(),</span> <span class="p">[</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.05</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">])</span>
 
-<span class="n">builder</span> <span class="o">=</span> <span class="n">PwCalculation</span><span class="o">.</span><span class="n">get_builder</span><span class="p">()</span>
-
-<span class="n">builder</span><span class="o">.</span><span class="n">code</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">load_code</span><span class="p">(</span><span class="s1">&#39;pw@localhost&#39;</span><span class="p">)</span>
-<span class="n">builder</span><span class="o">.</span><span class="n">structure</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">StructureData</span><span class="p">(</span><span class="n">ase</span><span class="o">=</span><span class="n">bulk</span><span class="p">(</span><span class="s1">&#39;Al&#39;</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mf">4.05</span><span class="p">,</span> <span class="n">cubic</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
-<span class="n">builder</span><span class="o">.</span><span class="n">pseudopotentials</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">Dict</span><span class="p">({</span><span class="s2">&quot;Al&quot;</span><span class="p">:</span> <span class="s2">&quot;Al.pbe-n-kjpaw_psl.1.0.0.UPF&quot;</span><span class="p">})</span>
-<span class="n">builder</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span><span class="n">relax_params</span><span class="p">)</span>
-<span class="n">builder</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">resources</span> <span class="o">=</span> <span class="n">resources</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">results</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">builder</span><span class="p">)</span>
-<span class="n">relaxed_structure</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;structure&#39;</span><span class="p">]</span>
-<span class="n">relaxed_structure</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;StructureData: uuid: 5a9342f9-9b10-4fa7-aa93-f698bcff99ea (pk: 16)&gt;
-</pre></div>
-</div>
-</div>
-</div>
-</section>
-<section id="calc-function-to-rescale-structures">
-<h3>Calc function to rescale structures<a class="headerlink" href="#calc-function-to-rescale-structures" title="Link to this heading">#</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">calcfunction</span></code> below takes an input structure and rescales it to different volumes.</p>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">aiida_qe_basic.pw</span> <span class="kn">import</span> <span class="n">PwCalculation</span>
-
-<span class="nd">@engine</span><span class="o">.</span><span class="n">calcfunction</span>
-<span class="k">def</span> <span class="nf">rescale_list</span><span class="p">(</span><span class="n">structure</span><span class="p">:</span> <span class="n">orm</span><span class="o">.</span><span class="n">StructureData</span><span class="p">,</span> <span class="n">factor_list</span><span class="p">:</span> <span class="n">orm</span><span class="o">.</span><span class="n">List</span><span class="p">):</span>
-
-    <span class="n">scaled_structure_dict</span> <span class="o">=</span> <span class="p">{}</span>
-
-    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">scaling_factor</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">factor_list</span><span class="o">.</span><span class="n">get_list</span><span class="p">()):</span>
-
-        <span class="n">ase_structure</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">get_ase</span><span class="p">()</span>
-
-        <span class="n">new_cell</span> <span class="o">=</span> <span class="n">ase_structure</span><span class="o">.</span><span class="n">get_cell</span><span class="p">()</span> <span class="o">*</span> <span class="n">scaling_factor</span>
-        <span class="n">ase_structure</span><span class="o">.</span><span class="n">set_cell</span><span class="p">(</span><span class="n">new_cell</span><span class="p">,</span> <span class="n">scale_atoms</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-        <span class="n">scaled_structure_dict</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;structure_</span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">StructureData</span><span class="p">(</span><span class="n">ase</span><span class="o">=</span><span class="n">ase_structure</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">scaled_structure_dict</span>
-</pre></div>
-</div>
-</div>
-</div>
-<p>Typically, you’d just run it by calling the function as you would a regular Python function:</p>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rescaled_structures</span> <span class="o">=</span> <span class="n">rescale_list</span><span class="p">(</span><span class="n">relaxed_structure</span><span class="p">,</span> <span class="n">orm</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="nb">list</span><span class="o">=</span><span class="p">[</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.05</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">]))</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rescaled_structures</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;structure_0&#39;: &lt;StructureData: uuid: 2d23a147-e7c8-41b2-8b73-4e29dd81c5f3 (pk: 20)&gt;,
- &#39;structure_1&#39;: &lt;StructureData: uuid: 497a082c-a78e-4719-86c5-48317b85b5a1 (pk: 21)&gt;,
- &#39;structure_2&#39;: &lt;StructureData: uuid: f89b8859-723a-4455-9661-ae4dad051635 (pk: 22)&gt;,
- &#39;structure_3&#39;: &lt;StructureData: uuid: 0982098b-5590-44f8-8d0b-62741c3d2644 (pk: 23)&gt;,
- &#39;structure_4&#39;: &lt;StructureData: uuid: 692a9438-9b0f-45c0-b661-897de3c5b829 (pk: 24)&gt;}
-</pre></div>
-</div>
-</div>
-</div>
-</section>
-</section>
-<section id="eos-work-function-version">
-<h2>EOS: Work function version<a class="headerlink" href="#eos-work-function-version" title="Link to this heading">#</a></h2>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">scf_inputs</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;CONTROL&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">&#39;calculation&#39;</span><span class="p">:</span> <span class="s1">&#39;scf&#39;</span><span class="p">,</span>
-        <span class="c1"># &#39;pseudo_dir&#39;: Path(&#39;files&#39;).absolute().as_posix(),</span>
-    <span class="p">},</span>
-    <span class="s1">&#39;SYSTEM&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">&#39;occupations&#39;</span><span class="p">:</span> <span class="s1">&#39;smearing&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;smearing&#39;</span><span class="p">:</span> <span class="s1">&#39;cold&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;degauss&#39;</span><span class="p">:</span> <span class="mf">0.02</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nd">@engine</span><span class="o">.</span><span class="n">workfunction</span>
-<span class="k">def</span> <span class="nf">run_eos_wf</span><span class="p">(</span><span class="n">code</span><span class="p">:</span> <span class="n">orm</span><span class="o">.</span><span class="n">Code</span><span class="p">,</span> <span class="n">structure</span><span class="p">:</span> <span class="n">orm</span><span class="o">.</span><span class="n">StructureData</span><span class="p">,</span> <span class="n">scale_factors</span><span class="p">:</span> <span class="n">orm</span><span class="o">.</span><span class="n">List</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run an equation of state of a bulk crystal structure for the given element.&quot;&quot;&quot;</span>
-
-    <span class="n">properties</span> <span class="o">=</span> <span class="p">{}</span>
-
-    <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">rescaled_structure</span> <span class="ow">in</span> <span class="n">rescale_list</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">scale_factors</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-
-        <span class="n">builder</span> <span class="o">=</span> <span class="n">PwCalculation</span><span class="o">.</span><span class="n">get_builder</span><span class="p">()</span>
-        <span class="n">builder</span><span class="o">.</span><span class="n">code</span> <span class="o">=</span> <span class="n">code</span>
-        <span class="n">builder</span><span class="o">.</span><span class="n">structure</span> <span class="o">=</span> <span class="n">rescaled_structure</span>
-        <span class="n">builder</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span><span class="n">scf_inputs</span><span class="p">)</span>
-        <span class="n">builder</span><span class="o">.</span><span class="n">pseudopotentials</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">Dict</span><span class="p">({</span><span class="s2">&quot;Al&quot;</span><span class="p">:</span> <span class="s2">&quot;Al.pbe-n-kjpaw_psl.1.0.0.UPF&quot;</span><span class="p">})</span>
-        <span class="n">builder</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">resources</span> <span class="o">=</span> <span class="n">resources</span>
-
-        <span class="n">results</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">builder</span><span class="p">)</span>
-        <span class="n">properties</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span>
-
-    <span class="k">return</span> <span class="n">properties</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">results</span> <span class="o">=</span> <span class="n">run_eos_wf</span><span class="p">(</span>
-    <span class="n">code</span><span class="o">=</span><span class="n">orm</span><span class="o">.</span><span class="n">load_code</span><span class="p">(</span><span class="s1">&#39;pw@localhost&#39;</span><span class="p">),</span>
-    <span class="n">structure</span><span class="o">=</span><span class="n">relaxed_structure</span><span class="p">,</span>
-    <span class="n">scale_factors</span><span class="o">=</span><span class="p">[</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.05</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">]</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">results</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;structure_0&#39;: &lt;Dict: uuid: 25b4d82f-b06f-48b3-9d24-2724d8c6306c (pk: 39)&gt;,
- &#39;structure_1&#39;: &lt;Dict: uuid: d1ce257f-eb9c-4af3-be3a-ffb6371e045d (pk: 46)&gt;,
- &#39;structure_2&#39;: &lt;Dict: uuid: afaa090a-7503-45dc-9cd7-b7eef2d75317 (pk: 53)&gt;,
- &#39;structure_3&#39;: &lt;Dict: uuid: bb27de53-405a-448c-8b46-ec40843e6a86 (pk: 60)&gt;,
- &#39;structure_4&#39;: &lt;Dict: uuid: e0fcc577-30c3-40c0-a193-548ac2d51b93 (pk: 67)&gt;}
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">volumes</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">structures</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="n">energies</span> <span class="o">=</span> <span class="p">[]</span>
 
-<span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-    <span class="n">volumes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;volume&#39;</span><span class="p">])</span>
-    <span class="n">energies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">])</span>
+<span class="n">scf_inputs</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;pseudopotentials&quot;</span><span class="p">:</span> <span class="n">pseudopotentials</span><span class="p">,</span> 
+    <span class="s2">&quot;kpts&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+    <span class="s2">&quot;calculation&quot;</span><span class="p">:</span> <span class="s2">&quot;scf&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;smearing&quot;</span><span class="p">:</span> <span class="mf">0.02</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="k">for</span> <span class="n">scaled_structure</span> <span class="ow">in</span> <span class="n">scaled_structures</span><span class="p">:</span>
+
+    <span class="n">scf_inputs</span><span class="p">[</span><span class="s1">&#39;structure&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">scaled_structure</span>
+    <span class="n">input_string</span> <span class="o">=</span> <span class="n">write_input</span><span class="p">(</span><span class="n">scf_inputs</span><span class="p">,</span> <span class="n">return_string</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">results_scf</span><span class="p">,</span> <span class="n">node_scf</span> <span class="o">=</span> <span class="n">launch_shell_job</span><span class="p">(</span>
+        <span class="s1">&#39;pw.x&#39;</span><span class="p">,</span>
+        <span class="n">arguments</span><span class="o">=</span><span class="s1">&#39;-in </span><span class="si">{input_file}</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">parser</span><span class="o">=</span><span class="n">pw_parser</span><span class="p">,</span>
+        <span class="n">nodes</span><span class="o">=</span><span class="p">{</span>
+            <span class="s1">&#39;input_file&#39;</span><span class="p">:</span> <span class="n">SinglefileData</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">input_string</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;input.pwi&#39;</span><span class="p">),</span>
+        <span class="p">},</span>
+        <span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;pwscf.xml&#39;</span><span class="p">,</span> <span class="p">],</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="p">{</span>
+            <span class="s1">&#39;options&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;prepend_text&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;export ESPRESSO_PSEUDO </span><span class="si">{</span><span class="n">FILEPATH_PSEUDOS</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;redirect_stderr&#39;</span><span class="p">:</span> <span class="kc">True</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="n">structures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">results_scf</span><span class="p">[</span><span class="s1">&#39;structure&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get_ase</span><span class="p">())</span>
+    <span class="n">energies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">results_scf</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -748,225 +522,31 @@
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="n">volumes</span> <span class="o">=</span> <span class="p">[</span><span class="n">structure</span><span class="o">.</span><span class="n">get_volume</span><span class="p">()</span> <span class="k">for</span> <span class="n">structure</span> <span class="ow">in</span> <span class="n">structures</span><span class="p">]</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">volumes</span><span class="p">,</span> <span class="n">energies</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Volume&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Energy&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;evcurve.png&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[&lt;matplotlib.lines.Line2D at 0x7f8d8d2dcf90&gt;]
-</pre></div>
-</div>
-<img alt="_images/b595b8051981eaea46c608fed1d5b3df8aec82ba8c30efae70b6ae481c6018ed.png" src="_images/b595b8051981eaea46c608fed1d5b3df8aec82ba8c30efae70b6ae481c6018ed.png" />
+<img alt="_images/3b5b022c65b53046d0ee57f7cc7593a30dab290ccf14e652a184426a1188b500.png" src="_images/3b5b022c65b53046d0ee57f7cc7593a30dab290ccf14e652a184426a1188b500.png" />
 </div>
 </div>
 </section>
-<section id="work-chain-version">
-<h2>Work chain version<a class="headerlink" href="#work-chain-version" title="Link to this heading">#</a></h2>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nd">@engine</span><span class="o">.</span><span class="n">calcfunction</span>
-<span class="k">def</span> <span class="nf">create_eos_dictionary</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">orm</span><span class="o">.</span><span class="n">Dict</span><span class="p">:</span>
-    <span class="n">eos</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">label</span><span class="p">:</span> <span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;volume&#39;</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">])</span>
-        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-    <span class="p">}</span>
-    <span class="k">return</span> <span class="n">orm</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span><span class="n">eos</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">create_eos_dictionary</span><span class="p">(</span><span class="o">**</span><span class="n">results</span><span class="p">)</span><span class="o">.</span><span class="n">get_dict</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;structure_0&#39;: [48.283007573324, -1073.9421694118],
- &#39;structure_1&#39;: [56.785519366503, -1074.7251942208],
- &#39;structure_2&#39;: [66.231834805659, -1074.9273047095],
- &#39;structure_3&#39;: [76.671627766898, -1074.7863009779],
- &#39;structure_4&#39;: [88.154572126333, -1074.451028786]}
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">EquationOfState</span><span class="p">(</span><span class="n">engine</span><span class="o">.</span><span class="n">WorkChain</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;WorkChain to compute Equation of State using Quantum ESPRESSO.&quot;&quot;&quot;</span>
-
-    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">define</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">spec</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Specify inputs and outputs.&quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">define</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
-        <span class="n">spec</span><span class="o">.</span><span class="n">input</span><span class="p">(</span><span class="s2">&quot;code&quot;</span><span class="p">,</span> <span class="n">valid_type</span><span class="o">=</span><span class="n">orm</span><span class="o">.</span><span class="n">Code</span><span class="p">)</span>
-        <span class="n">spec</span><span class="o">.</span><span class="n">input</span><span class="p">(</span><span class="s2">&quot;structure&quot;</span><span class="p">,</span> <span class="n">valid_type</span><span class="o">=</span><span class="n">orm</span><span class="o">.</span><span class="n">StructureData</span><span class="p">)</span>
-        <span class="n">spec</span><span class="o">.</span><span class="n">input</span><span class="p">(</span><span class="s2">&quot;scale_factors&quot;</span><span class="p">,</span> <span class="n">valid_type</span><span class="o">=</span><span class="n">orm</span><span class="o">.</span><span class="n">List</span><span class="p">)</span>
-
-        <span class="n">spec</span><span class="o">.</span><span class="n">outline</span><span class="p">(</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">run_eos</span><span class="p">,</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">results</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="n">spec</span><span class="o">.</span><span class="n">output</span><span class="p">(</span><span class="s2">&quot;eos_dict&quot;</span><span class="p">,</span> <span class="n">valid_type</span><span class="o">=</span><span class="n">orm</span><span class="o">.</span><span class="n">Dict</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">run_eos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-
-        <span class="n">calcjob_dict</span> <span class="o">=</span> <span class="p">{}</span>
-
-        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">rescaled_structure</span> <span class="ow">in</span> <span class="n">rescale_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">scale_factors</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-
-            <span class="n">builder</span> <span class="o">=</span> <span class="n">PwCalculation</span><span class="o">.</span><span class="n">get_builder</span><span class="p">()</span>
-            <span class="n">builder</span><span class="o">.</span><span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">code</span>
-            <span class="n">builder</span><span class="o">.</span><span class="n">structure</span> <span class="o">=</span> <span class="n">rescaled_structure</span>
-            <span class="n">builder</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span><span class="n">scf_inputs</span><span class="p">)</span>
-            <span class="n">builder</span><span class="o">.</span><span class="n">pseudopotentials</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">Dict</span><span class="p">({</span><span class="s2">&quot;Al&quot;</span><span class="p">:</span> <span class="s2">&quot;Al.pbe-n-kjpaw_psl.1.0.0.UPF&quot;</span><span class="p">})</span>
-            <span class="n">builder</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">resources</span> <span class="o">=</span> <span class="n">resources</span>
-
-            <span class="n">calcjob_dict</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">builder</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">calcjob_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-
-        <span class="k">return</span> <span class="n">calcjob_dict</span>
-
-    <span class="k">def</span> <span class="nf">results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="p">)</span>
-
-        <span class="n">eos_results</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">label</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="p">[</span><span class="n">label</span><span class="p">]</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="o">.</span><span class="n">labels</span>
-        <span class="p">}</span>
-        <span class="n">eos_dict</span> <span class="o">=</span> <span class="n">create_eos_dictionary</span><span class="p">(</span><span class="o">**</span><span class="n">eos_results</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s1">&#39;eos_dict&#39;</span><span class="p">,</span> <span class="n">eos_dict</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">engine</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">EquationOfState</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="n">orm</span><span class="o">.</span><span class="n">load_code</span><span class="p">(</span><span class="s1">&#39;pw@localhost&#39;</span><span class="p">),</span>
-           <span class="n">structure</span><span class="o">=</span><span class="n">relaxed_structure</span><span class="p">,</span>
-           <span class="n">scale_factors</span><span class="o">=</span><span class="n">orm</span><span class="o">.</span><span class="n">List</span><span class="p">([</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.05</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">]))</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>04/04/2024 05:40:39 PM &lt;83&gt; aiida.orm.nodes.process.workflow.workchain.WorkChainNode: [REPORT] [71|EquationOfState|results]: AttributeDict({&#39;labels&#39;: [&#39;structure_0&#39;, &#39;structure_1&#39;, &#39;structure_2&#39;, &#39;structure_3&#39;, &#39;structure_4&#39;], &#39;structure_0&#39;: &lt;CalcJobNode: uuid: 444fc6e6-f85f-4d91-a8d6-d0d8a5391be2 (pk: 80) (aiida.calculations:qe.pw)&gt;, &#39;structure_1&#39;: &lt;CalcJobNode: uuid: 5ffc349a-078d-4dd8-afdd-9bf857a0a761 (pk: 83) (aiida.calculations:qe.pw)&gt;, &#39;structure_2&#39;: &lt;CalcJobNode: uuid: 0623b121-39ad-4751-833a-3fd5b445578b (pk: 86) (aiida.calculations:qe.pw)&gt;, &#39;structure_3&#39;: &lt;CalcJobNode: uuid: bc77a827-5f32-4804-8844-f71ee458594e (pk: 89) (aiida.calculations:qe.pw)&gt;, &#39;structure_4&#39;: &lt;CalcJobNode: uuid: 19862df7-1e4e-4ddf-ac68-08390ab2207b (pk: 92) (aiida.calculations:qe.pw)&gt;})
-</pre></div>
-</div>
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;eos_dict&#39;: &lt;Dict: uuid: f0e400dc-33cc-486e-baac-b67c2d2a83c3 (pk: 114)&gt;}
-</pre></div>
-</div>
-</div>
-</div>
+<section id="submission-to-an-hpc-check-pointing-error-handling">
+<h2>Submission to an HPC / Check pointing / Error handling<a class="headerlink" href="#submission-to-an-hpc-check-pointing-error-handling" title="Link to this heading">#</a></h2>
+<p>To be added…</p>
 </section>
-<section id="using-the-builder">
-<h2>Using the <code class="docutils literal notranslate"><span class="pre">builder</span></code><a class="headerlink" href="#using-the-builder" title="Link to this heading">#</a></h2>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span> <span class="o">=</span> <span class="n">EquationOfState</span><span class="o">.</span><span class="n">get_builder</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">structure</span> <span class="o">=</span> <span class="n">relaxed_structure</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Process class: EquationOfState
-Inputs:
-metadata: {}
-structure: Al
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">scale_factors</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">List</span><span class="p">([</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.05</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">])</span>
-<span class="n">builder</span><span class="o">.</span><span class="n">code</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">load_code</span><span class="p">(</span><span class="s1">&#39;pw@localhost&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">results</span><span class="p">,</span> <span class="n">node</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">run_get_node</span><span class="p">(</span><span class="n">builder</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>04/04/2024 05:41:05 PM &lt;83&gt; aiida.orm.nodes.process.workflow.workchain.WorkChainNode: [REPORT] [116|EquationOfState|results]: AttributeDict({&#39;labels&#39;: [&#39;structure_0&#39;, &#39;structure_1&#39;, &#39;structure_2&#39;, &#39;structure_3&#39;, &#39;structure_4&#39;], &#39;structure_0&#39;: &lt;CalcJobNode: uuid: 4c5d1fc6-220e-4ded-809a-d6d2e0c33994 (pk: 125) (aiida.calculations:qe.pw)&gt;, &#39;structure_1&#39;: &lt;CalcJobNode: uuid: a37cc25c-3be7-420a-a297-6da6feede4ed (pk: 128) (aiida.calculations:qe.pw)&gt;, &#39;structure_2&#39;: &lt;CalcJobNode: uuid: b354499e-f43a-4aa3-ae0d-383573d8d4ed (pk: 131) (aiida.calculations:qe.pw)&gt;, &#39;structure_3&#39;: &lt;CalcJobNode: uuid: ee507eb7-e4c3-48e5-b75c-4e7095f36908 (pk: 134) (aiida.calculations:qe.pw)&gt;, &#39;structure_4&#39;: &lt;CalcJobNode: uuid: 73b0118b-ad3a-40d6-b6e1-cb9e9befb761 (pk: 137) (aiida.calculations:qe.pw)&gt;})
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;eos_dict&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get_dict</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;structure_0&#39;: [48.283007573324, -1073.9421694118],
- &#39;structure_1&#39;: [56.785519366503, -1074.7251942208],
- &#39;structure_2&#39;: [66.231834805659, -1074.9273047095],
- &#39;structure_3&#39;: [76.671627766898, -1074.7863009779],
- &#39;structure_4&#39;: [88.154572126333, -1074.451028786]}
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">eos</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">eos_dict</span><span class="o">.</span><span class="n">get_dict</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">eos</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;structure_0&#39;: [48.283007573324, -1073.9421694118],
- &#39;structure_1&#39;: [56.785519366503, -1074.7251942208],
- &#39;structure_2&#39;: [66.231834805659, -1074.9273047095],
- &#39;structure_3&#39;: [76.671627766898, -1074.7863009779],
- &#39;structure_4&#39;: [88.154572126333, -1074.451028786]}
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
-    <span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">eos</span><span class="o">.</span><span class="n">values</span><span class="p">()],</span>
-    <span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">eos</span><span class="o">.</span><span class="n">values</span><span class="p">()],</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[&lt;matplotlib.lines.Line2D at 0x7f8d7be46b50&gt;]
-</pre></div>
-</div>
-<img alt="_images/b595b8051981eaea46c608fed1d5b3df8aec82ba8c30efae70b6ae481c6018ed.png" src="_images/b595b8051981eaea46c608fed1d5b3df8aec82ba8c30efae70b6ae481c6018ed.png" />
-</div>
-</div>
+<section id="data-storage-data-sharing">
+<h2>Data Storage / Data Sharing<a class="headerlink" href="#data-storage-data-sharing" title="Link to this heading">#</a></h2>
+<p>To be added…</p>
+</section>
+<section id="publication-of-the-workflow">
+<h2>Publication of the workflow<a class="headerlink" href="#publication-of-the-workflow" title="Link to this heading">#</a></h2>
+<p>To be added…</p>
 </section>
 </section>
 
@@ -1035,15 +615,12 @@ structure: Al
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#equation-of-state-curve-basic-qe">Equation of State curve - basic QE</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#importing-a-structure">Importing a structure</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#relaxing-the-geometry">Relaxing the geometry</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#calc-function-to-rescale-structures">Calc function to rescale structures</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#eos-work-function-version">EOS: Work function version</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#work-chain-version">Work chain version</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#using-the-builder">Using the <code class="docutils literal notranslate"><span class="pre">builder</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation-and-setup">Installation and setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implementation-of-a-new-simulation-code">Implementation of a new simulation code</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#eos">EOS</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submission-to-an-hpc-check-pointing-error-handling">Submission to an HPC / Check pointing / Error handling</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-storage-data-sharing">Data Storage / Data Sharing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#publication-of-the-workflow">Publication of the workflow</a></li>
 </ul>
   </nav></div>
 
