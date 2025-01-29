@@ -9,7 +9,7 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v4
     - uses: conda-incubator/setup-miniconda@v3
@@ -22,6 +22,7 @@ jobs:
       shell: bash -l {0}
       run: |
         pip install -e aiida_qe_basic
+        pip install -e adis_tools
         conda install -c conda-forge jupyter papermill
         export ESPRESSO_PSEUDO=$(pwd)/espresso/pseudo
         papermill pyiron_base.ipynb pyiron_base-out.ipynb -k "python3"

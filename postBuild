@@ -1,2 +1,3 @@
 pip install -e aiida_qe_basic
+pip install -e adis_tools
 verdi presto
