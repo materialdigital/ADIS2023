@@ -1,0 +1,3 @@
+[submodule "simstack"]
+	path = simstack
+	url = https://github.com/KIT-Workflows/EV_curve
