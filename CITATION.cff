@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 authors:
-- affiliation: "Max-Planck-Institut für Nachhaltige Materialien"
+- affiliation: "Max-Planck-Institute for Sustainable Materials"
   family-names: Jan Janssen
   orcid: 0000-0002-2961-9670
 - affiliation: Federal Institute For Materials Research and Testing
@@ -24,7 +24,7 @@ authors:
   family-names: Schaarschmidt
   given-names: Joerg
   orcid: 0000-0002-4389-2366
-- affiliation: "Max-Planck-Institut für Nachhaltige Materialien"
+- affiliation: Max-Planck-Institute for Sustainable Materials
   family-names: Waseda
   given-names: Osamu
   orcid: 0000-0002-1677-4057
@@ -36,7 +36,7 @@ authors:
   family-names: Hickel
   given-names: Tilmann
   orcid: 0000-0003-0698-4891
-- affiliation: "Max-Planck-Institut für Nachhaltige Materialien"
+- affiliation: Max-Planck-Institute for Sustainable Materials
   family-names: Neugebauer
   given-names: Joerg
   orcid: 0000-0002-7903-2472
