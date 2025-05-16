@@ -1,46 +1,37 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 authors:
-- affiliation: "Max-Planck-Institute for Sustainable Materials"
-  family-names: Jan Janssen
-  orcid: 0000-0002-2961-9670
-- affiliation: Federal Institute For Materials Research and Testing
-  family-names: George
+- family-names: Janssen
+  given-names: Jan
+  orcid: https://orcid.org/0000-0002-2961-9670
+- family-names: George
   given-names: Janine
-  orcid: 0000-0001-8907-0336
-- affiliation: Federal Institute For Materials Research and Testing
-  family-names: Ertural
+  orcid: https://orcid.org/0000-0001-8907-0336
+- family-names: Ertural
   given-names: Christina
-  orcid: 0000-0002-7696-5824
-- affiliation: Paul Scherrer Institute
-  family-names: Bercx
+  orcid: https://orcid.org/0000-0002-7696-5824
+- family-names: Bercx
   given-names: Marnik
-  orcid: 0000-0001-8470-1012
-- affiliation: Paul Scherrer Institute
-  family-names: Geiger
+  orcid: https://orcid.org/0000-0001-8470-1012
+- family-names: Geiger
   given-names: Julian
-  orcid: 0000-0003-0023-1960
-- affiliation: Karlsruhe Institute of Technology
-  family-names: Schaarschmidt
+  orcid: https://orcid.org/0000-0003-0023-1960
+- family-names: Schaarschmidt
   given-names: Joerg
-  orcid: 0000-0002-4389-2366
-- affiliation: Max-Planck-Institute for Sustainable Materials
-  family-names: Waseda
+  orcid: https://orcid.org/0000-0002-4389-2366
+- family-names: Waseda
   given-names: Osamu
-  orcid: 0000-0002-1677-4057
-- affiliation: Schott (Germany)
-  family-names: Talirz
+  orcid: https://orcid.org/0000-0002-1677-4057
+- family-names: Talirz
   given-names: Leopold
-  orcid: 0000-0002-1524-5903
-- affiliation: Federal Institute For Materials Research and Testing
-  family-names: Hickel
+  orcid: https://orcid.org/0000-0002-1524-5903
+- family-names: Hickel
   given-names: Tilmann
-  orcid: 0000-0003-0698-4891
-- affiliation: Max-Planck-Institute for Sustainable Materials
-  family-names: Neugebauer
+  orcid: https://orcid.org/0000-0003-0698-4891
+- family-names: Neugebauer
   given-names: Joerg
-  orcid: 0000-0002-7903-2472
-title: 'materialdigital/ADIS2023: Summary of the Workflow Hackathon @ ADIS Workshop
+  orcid: https://orcid.org/0000-0002-7903-2472
+title: "materialdigital/ADIS2023: Summary of the Workflow Hackathon @ ADIS Workshop"
 version: 1.0.0
 doi: 10.5281/zenodo.15429817
 date-released: 2025-05-16
